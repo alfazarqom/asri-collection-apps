@@ -489,7 +489,7 @@ export const ProductDetails: React.FC = () => {
       <SizeGuideModal
         isOpen={isSizeGuideOpen}
         onClose={() => setIsSizeGuideOpen(false)}
-        categorySlug={product.categorySlug}
+        categorySlug={product.categorySlug ?? ""}
       />
     </div>
   );
