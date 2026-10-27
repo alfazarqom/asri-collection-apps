@@ -1,13 +1,10 @@
 import { supabase, isSupabaseConfigured } from "../lib/supabase.ts";
 import {
-  Category,
   Product,
-  OFFICIAL_CATEGORIES,
   OFFICIAL_PRODUCTS,
 } from "../data/defaultCatalog.ts";
 
 export interface ProductFilters {
-  categorySlug?: string;
   search?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -16,40 +13,6 @@ export interface ProductFilters {
 }
 
 export const LOCAL_PRODUCTS_KEY = "asri_custom_products";
-export const LOCAL_CATEGORIES_KEY = "asri_custom_categories";
-
-export function getCustomCategories(): Category[] {
-  try {
-    const raw = localStorage.getItem(LOCAL_CATEGORIES_KEY);
-    if (raw) return JSON.parse(raw);
-    localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(OFFICIAL_CATEGORIES));
-    return OFFICIAL_CATEGORIES;
-  } catch {
-    return OFFICIAL_CATEGORIES;
-  }
-}
-
-export function saveCustomCategory(cat: Category): Category[] {
-  const all = getCustomCategories();
-  const exists = all.findIndex((c) => c.id === cat.id || c.slug === cat.slug);
-  let updated: Category[];
-  if (exists >= 0) {
-    updated = [...all];
-    updated[exists] = cat;
-  } else {
-    updated = [cat, ...all];
-  }
-  localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(updated));
-  return updated;
-}
-
-export function deleteCustomCategory(idOrSlug: string): Category[] {
-  const all = getCustomCategories();
-  const updated = all.filter((c) => c.id !== idOrSlug && c.slug !== idOrSlug);
-  localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(updated));
-  return updated;
-}
-
 export function getCustomProducts(): Product[] {
   try {
     const raw = localStorage.getItem(LOCAL_PRODUCTS_KEY);
@@ -82,32 +45,6 @@ export function deleteCustomProduct(id: string): Product[] {
   return updated;
 }
 
-export async function fetchCategories(): Promise<Category[]> {
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-
-      if (!error && data && data.length > 0) {
-        return data.map((item: any) => ({
-          id: item.id,
-          slug: item.slug,
-          name: item.name,
-          description: item.description || "",
-          imageUrl: item.image_url || "/src/assets/images/hero_modest_fashion_banner_1793090597385.jpg",
-          itemCount: 10,
-        }));
-      }
-    } catch (err) {
-      console.warn("Supabase category fetch error, falling back to local catalog:", err);
-    }
-  }
-  return getCustomCategories();
-}
-
 export async function fetchProducts(filters: ProductFilters = {}): Promise<Product[]> {
   let productsList = getCustomProducts();
 
@@ -115,9 +52,6 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
     try {
       let query = supabase.from("products").select("*").eq("is_active", true);
 
-      if (filters.categorySlug && filters.categorySlug !== "all") {
-        query = query.eq("category_slug", filters.categorySlug);
-      }
 
       const { data, error } = await query;
       if (!error && data && data.length > 0) {
@@ -131,7 +65,6 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
           discountPercentage: p.discount_percentage || 0,
           rating: Number(p.rating) || 4.9,
           reviewCount: p.review_count || 10,
-          categorySlug: p.category_slug || "dresses",
           thumbnail: p.thumbnail,
           images: p.images && p.images.length > 0 ? p.images : [p.thumbnail],
           sizes: p.sizes || ["S", "M", "L", "XL"],
@@ -153,9 +86,6 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
   // Filter & Sort secara client-side untuk responsivitas instan
   let filtered = [...productsList];
 
-  if (filters.categorySlug && filters.categorySlug !== "all") {
-    filtered = filtered.filter((p) => p.categorySlug === filters.categorySlug);
-  }
 
   if (filters.search && filters.search.trim()) {
     const q = filters.search.toLowerCase().trim();
@@ -163,8 +93,7 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
       (p) =>
         p.title.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q) ||
-        p.material.toLowerCase().includes(q) ||
-        p.categorySlug.toLowerCase().includes(q)
+        p.material.toLowerCase().includes(q)
     );
   }
 
