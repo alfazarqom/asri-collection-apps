@@ -105,7 +105,7 @@ export const Products: React.FC = () => {
               Coba kurangi filter atau cari dengan kata kunci lain untuk melihat koleksi Asri Collection.
             </p>
             <button
-              onClick={() => handleFilterChange({ search: "" })
+              onClick={() => handleFilterChange({ search: "" })}
               className="mt-5 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-white bg-[#1C1917] hover:bg-[#9A3412] transition-colors"
             >
               Tampilkan Semua Produk
