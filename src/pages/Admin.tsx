@@ -38,8 +38,6 @@ import {
 import {
   Category,
   Product,
-  OFFICIAL_CATEGORIES,
-  OFFICIAL_PRODUCTS,
 } from "../data/defaultCatalog.ts";
 import {
   getCustomCategories,
@@ -1251,7 +1249,7 @@ export const Admin: React.FC = () => {
                     discountPercentage: 15,
                     rating: 4.9,
                     reviewCount: 10,
-                    categorySlug: categories[0]?.slug || "dresses",
+                    categorySlug: categories[0]?.slug || "",
                     thumbnail: "/src/assets/images/product_gamis_mulberry_1793090598263.jpg",
                     images: ["/src/assets/images/product_gamis_mulberry_1793090598263.jpg"],
                     sizes: ["S", "M", "L", "XL"],
