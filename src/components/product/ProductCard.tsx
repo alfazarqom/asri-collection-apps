@@ -71,7 +71,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           {/* Category & Rating */}
           <div className="flex items-center justify-between text-[11px] text-stone-500 mb-1">
             <span className="uppercase tracking-wider font-medium">
-              {product.categorySlug}
+              
             </span>
             <div className="flex items-center gap-1 text-stone-700">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
