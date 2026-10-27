@@ -4,7 +4,6 @@ import { X, Ruler } from "lucide-react";
 interface SizeGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
-  categorySlug?: string;
 }
 
 export const SizeGuideModal: React.FC<SizeGuideModalProps> = ({ isOpen, onClose }) => {

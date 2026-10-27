@@ -140,13 +140,6 @@ export const ProductDetails: React.FC = () => {
             Katalog
           </Link>
           <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-          <Link
-            to={`/products?category=${product.categorySlug}`}
-            className="hover:text-[#9A3412] capitalize"
-          >
-            {product.categorySlug}
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
           <span className="text-[#1C1917] font-semibold truncate max-w-xs">
             {product.title}
           </span>
@@ -198,10 +191,9 @@ export const ProductDetails: React.FC = () => {
           {/* Sticky Purchase Module Right */}
           <div className="lg:col-span-5 bg-white border border-[#E7DFD5] p-6 sm:p-8 space-y-6 shadow-xs">
             <div>
-              {/* Category & SKU */}
+              {/* SKU */}
               <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
                 <span className="uppercase tracking-wider font-semibold text-[#9A3412]">
-                  {product.categorySlug}
                 </span>
                 <span className="font-mono text-[11px]">SKU: {product.sku}</span>
               </div>
@@ -477,7 +469,6 @@ export const ProductDetails: React.FC = () => {
         {/* Related Products */}
         <RelatedProducts
           currentProductId={product.id}
-          categorySlug={product.categorySlug}
           allProducts={allProducts}
         />
       </div>
@@ -486,7 +477,6 @@ export const ProductDetails: React.FC = () => {
       <SizeGuideModal
         isOpen={isSizeGuideOpen}
         onClose={() => setIsSizeGuideOpen(false)}
-        categorySlug={product.categorySlug}
       />
     </div>
   );
