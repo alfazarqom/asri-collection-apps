@@ -25,7 +25,7 @@ export const CategorySection: React.FC<{ categories: Category[] }> = ({ categori
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {categories.map((cat) => (
             <Link
               key={cat.id}
@@ -33,12 +33,11 @@ export const CategorySection: React.FC<{ categories: Category[] }> = ({ categori
               className="group block bg-white border border-[#E7DFD5] hover:border-[#1C1917] p-3 text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-sm"
             >
               <div className="aspect-square bg-[#FAF8F5] overflow-hidden mb-3">
-                <img
-                  src={cat.imageUrl}
-                  alt={cat.name}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+                {cat.imageUrl ? (
+                  <img src={cat.imageUrl} alt={cat.name} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xs text-stone-400">Gambar belum tersedia</div>
+                )}
               </div>
               <h3 className="text-xs font-bold text-[#1C1917] group-hover:text-[#9A3412] transition-colors line-clamp-1">
                 {cat.name}
