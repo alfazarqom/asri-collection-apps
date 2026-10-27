@@ -141,10 +141,8 @@ export const ProductDetails: React.FC = () => {
           </Link>
           <ChevronRight className="w-3.5 h-3.5 shrink-0" />
           <Link
-            to={`/products?category=${product.categorySlug}`}
             className="hover:text-[#9A3412] capitalize"
           >
-            {product.categorySlug}
           </Link>
           <ChevronRight className="w-3.5 h-3.5 shrink-0" />
           <span className="text-[#1C1917] font-semibold truncate max-w-xs">
@@ -201,8 +199,7 @@ export const ProductDetails: React.FC = () => {
               {/* Category & SKU */}
               <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
                 <span className="uppercase tracking-wider font-semibold text-[#9A3412]">
-                  {product.categorySlug}
-                </span>
+                      </span>
                 <span className="font-mono text-[11px]">SKU: {product.sku}</span>
               </div>
 
@@ -477,7 +474,7 @@ export const ProductDetails: React.FC = () => {
         {/* Related Products */}
         <RelatedProducts
           currentProductId={product.id}
-          categorySlug={product.categorySlug}
+
           allProducts={allProducts}
         />
       </div>
