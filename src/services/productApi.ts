@@ -3,7 +3,6 @@ import {
   Category,
   Product,
   OFFICIAL_CATEGORIES,
-  OFFICIAL_PRODUCTS,
 } from "../data/defaultCatalog.ts";
 
 export interface ProductFilters {
@@ -50,36 +49,19 @@ export function deleteCustomCategory(idOrSlug: string): Category[] {
   return updated;
 }
 
+/** Product records are read only from the Bonsoir Edge Function. */
 export function getCustomProducts(): Product[] {
-  try {
-    const raw = localStorage.getItem(LOCAL_PRODUCTS_KEY);
-    if (raw) return JSON.parse(raw);
-    localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(OFFICIAL_PRODUCTS));
-    return OFFICIAL_PRODUCTS;
-  } catch {
-    return OFFICIAL_PRODUCTS;
-  }
+  return [];
 }
 
-export function saveCustomProduct(prod: Product): Product[] {
-  const all = getCustomProducts();
-  const exists = all.findIndex((p) => p.id === prod.id);
-  let updated: Product[];
-  if (exists >= 0) {
-    updated = [...all];
-    updated[exists] = prod;
-  } else {
-    updated = [prod, ...all];
-  }
-  localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(updated));
-  return updated;
+/** Product writes are not supported by the read-only get-bonsoir-products endpoint. */
+export function saveCustomProduct(_prod: Product): Product[] {
+  throw new Error("Produk dikelola melalui sumber Bonsoir; penyimpanan produk lokal dinonaktifkan.");
 }
 
-export function deleteCustomProduct(id: string): Product[] {
-  const all = getCustomProducts();
-  const updated = all.filter((p) => p.id !== id);
-  localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(updated));
-  return updated;
+/** Product writes are not supported by the read-only get-bonsoir-products endpoint. */
+export function deleteCustomProduct(_id: string): Product[] {
+  throw new Error("Penghapusan produk lokal dinonaktifkan karena sumber produk tunggal adalah Bonsoir.");
 }
 
 export async function fetchCategories(): Promise<Category[]> {
@@ -108,74 +90,130 @@ export async function fetchCategories(): Promise<Category[]> {
   return getCustomCategories();
 }
 
+const BONSOIR_PRODUCTS_ENDPOINT =
+  "https://mvwflakurihhakdrlteg.supabase.co/functions/v1/get-bonsoir-products";
+
+type BonsoirProduct = {
+  id: string;
+  source_product_id: string | null;
+  title: string;
+  brand: string | null;
+  price: number | string | null;
+  sale_price: number | string | null;
+  currency: string | null;
+  description: string | null;
+  sku: string | null;
+  category: string | null;
+  availability: string | null;
+  stock_quantity: number | null;
+  colors: string[] | null;
+  sizes: string[] | null;
+  image_url: string | null;
+  additional_image_urls: string[] | null;
+  labels: string[] | null;
+  created_at: string;
+  updated_at: string;
+};
+
+function slugify(value: string): string {
+  return value
+    .normalize("NFKD")
+    .toLowerCase()
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function mapBonsoirProduct(p: BonsoirProduct): Product {
+  const basePrice = Number(p.price ?? 0);
+  const salePrice = p.sale_price == null ? null : Number(p.sale_price);
+  const hasDiscount = salePrice !== null && salePrice > 0 && basePrice > salePrice;
+  const imageList = [...new Set(
+    [p.image_url, ...(Array.isArray(p.additional_image_urls) ? p.additional_image_urls : [])]
+      .filter((url): url is string => typeof url === "string" && url.trim().length > 0)
+  )];
+  const labels = Array.isArray(p.labels) ? p.labels : [];
+  const categorySlug = p.category?.trim() || "";
+  const titleSlug = slugify(p.title || "");
+  const stableSlug = titleSlug ? `${titleSlug}-${p.id.slice(0, 8)}` : p.id;
+
+  return {
+    id: p.id,
+    slug: stableSlug,
+    title: p.title,
+    description: p.description ?? "",
+    price: hasDiscount ? salePrice! : basePrice,
+    originalPrice: hasDiscount ? basePrice : undefined,
+    discountPercentage: hasDiscount ? Math.round(((basePrice - salePrice!) / basePrice) * 100) : undefined,
+    rating: 0,
+    reviewCount: 0,
+    categorySlug,
+    thumbnail: p.image_url ?? "",
+    images: imageList,
+    sizes: Array.isArray(p.sizes) ? p.sizes : [],
+    colors: Array.isArray(p.colors) ? p.colors : [],
+    stock: p.stock_quantity ?? 0,
+    sku: p.sku ?? "",
+    isFeatured: labels.some((label) => /^(featured|unggulan)$/i.test(label)),
+    isNew: labels.some((label) => /^(new|baru)$/i.test(label)),
+    weightGrams: 0,
+    material: "",
+    careInstructions: "",
+    brand: p.brand ?? "",
+    currency: p.currency ?? "",
+    availability: p.availability ?? "",
+    labels,
+    sourceProductId: p.source_product_id ?? undefined,
+    createdAt: p.created_at,
+    updatedAt: p.updated_at,
+  };
+}
+
 export async function fetchProducts(filters: ProductFilters = {}): Promise<Product[]> {
-  let productsList = getCustomProducts();
+  const pageSize = 100;
+  const rows: BonsoirProduct[] = [];
 
-  if (isSupabaseConfigured && supabase) {
-    try {
-      let query = supabase.from("products").select("*").eq("is_active", true);
-
-      if (filters.categorySlug && filters.categorySlug !== "all") {
-        query = query.eq("category_slug", filters.categorySlug);
-      }
-
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        productsList = data.map((p: any) => ({
-          id: p.id,
-          slug: p.slug,
-          title: p.title,
-          description: p.description || "",
-          price: Number(p.price),
-          originalPrice: p.original_price ? Number(p.original_price) : undefined,
-          discountPercentage: p.discount_percentage || 0,
-          rating: Number(p.rating) || 4.9,
-          reviewCount: p.review_count || 10,
-          categorySlug: p.category_slug || "dresses",
-          thumbnail: p.thumbnail,
-          images: p.images && p.images.length > 0 ? p.images : [p.thumbnail],
-          sizes: p.sizes || ["S", "M", "L", "XL"],
-          colors: p.colors || ["Mocca", "Broken White", "Sage", "Hitam"],
-          stock: p.stock ?? 25,
-          sku: p.sku || `ASR-${p.id.slice(0, 6)}`,
-          isFeatured: Boolean(p.is_featured),
-          isNew: Boolean(p.is_new),
-          weightGrams: p.weight_grams || 350,
-          material: p.material || "Premium Silk & Cotton Blend",
-          careInstructions: p.care_instructions || "Cuci dengan tangan, gunakan detergen lembut.",
-        }));
-      }
-    } catch (err) {
-      console.warn("Supabase products fetch error, using local fallback:", err);
+  for (let offset = 0; ; offset += pageSize) {
+    const response = await fetch(`${BONSOIR_PRODUCTS_ENDPOINT}?limit=${pageSize}&offset=${offset}`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      throw new Error(`Gagal mengambil produk Bonsoir (HTTP ${response.status}).`);
     }
+
+    const page: unknown = await response.json();
+    if (!Array.isArray(page)) {
+      throw new Error("Respons get-bonsoir-products tidak valid: format harus berupa JSON array.");
+    }
+
+    rows.push(...(page as BonsoirProduct[]));
+    if (page.length < pageSize) break;
   }
 
-  // Filter & Sort secara client-side untuk responsivitas instan
-  let filtered = [...productsList];
+  let filtered = rows.map(mapBonsoirProduct);
 
   if (filters.categorySlug && filters.categorySlug !== "all") {
     filtered = filtered.filter((p) => p.categorySlug === filters.categorySlug);
   }
 
-  if (filters.search && filters.search.trim()) {
+  if (filters.search?.trim()) {
     const q = filters.search.toLowerCase().trim();
-    filtered = filtered.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.material.toLowerCase().includes(q) ||
-        p.categorySlug.toLowerCase().includes(q)
+    filtered = filtered.filter((p) =>
+      p.title.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.brand?.toLowerCase().includes(q) ||
+      p.categorySlug.toLowerCase().includes(q) ||
+      p.sku.toLowerCase().includes(q)
     );
   }
 
   if (filters.minPrice !== undefined && filters.minPrice > 0) {
     filtered = filtered.filter((p) => p.price >= filters.minPrice!);
   }
-
   if (filters.maxPrice !== undefined && filters.maxPrice > 0) {
     filtered = filtered.filter((p) => p.price <= filters.maxPrice!);
   }
-
   if (filters.inStockOnly) {
     filtered = filtered.filter((p) => p.stock > 0);
   }
@@ -188,14 +226,14 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
       filtered.sort((a, b) => b.price - a.price);
       break;
     case "newest":
-      filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+      filtered.sort((a, b) => Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""));
       break;
     case "rating":
       filtered.sort((a, b) => b.rating - a.rating);
       break;
     case "featured":
     default:
-      filtered.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
+      filtered.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured));
       break;
   }
 
