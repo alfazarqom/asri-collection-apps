@@ -193,7 +193,7 @@ export const Cart: React.FC = () => {
         price: item.product.price,
         quantity: item.quantity,
         variant: `${item.selectedSize} / ${item.selectedColor}`,
-        thumbnail: item.product.thumbnail,
+        thumbnail: item.product.thumbnail ?? undefined,
       })),
     };
 
