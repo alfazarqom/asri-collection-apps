@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { getEndOffset } from "./pagination.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -112,8 +113,8 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const endOffset = requestedOffset + requestedLimit - 1;
-  if (!Number.isSafeInteger(endOffset)) {
+  const endOffset = getEndOffset(requestedOffset, requestedLimit);
+  if (endOffset === null) {
     return jsonResponse(
       { error: "offset and limit exceed the supported range." },
       400,
