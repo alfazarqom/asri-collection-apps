@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fetchProducts, ProductFilters } from "../services/productApi.ts";
-import { Product, OFFICIAL_PRODUCTS } from "../data/defaultCatalog.ts";
+import { fetchCategories, fetchProducts, ProductFilters } from "../services/productApi.ts";
+import { Category, Product } from "../data/defaultCatalog.ts";
 import { ProductCard } from "../components/product/ProductCard.tsx";
 import { ProductFilter } from "../components/product/ProductFilter.tsx";
 import { ProductCardSkeleton } from "../components/ui/Loader.tsx";
@@ -9,7 +9,9 @@ import { Sparkles, SearchX } from "lucide-react";
 
 export const Products: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>(OFFICIAL_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Sync state from URL parameters
@@ -29,16 +31,26 @@ export const Products: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
+    fetchCategories().then((res) => { if (isMounted) setCategories(res); }).catch((err) => {
+      if (isMounted) setLoadError(err instanceof Error ? err.message : "Kategori gagal dimuat.");
+    });
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
     setLoading(true);
 
     fetchProducts(filters)
       .then((res) => {
         if (isMounted) {
           setProducts(res);
+          setLoadError(null);
         }
       })
       .catch((err) => {
-        console.warn("Failed to load products:", err);
+        console.error("Failed to load products:", err);
+        if (isMounted) { setProducts([]); setLoadError(err instanceof Error ? err.message : "Produk gagal dimuat."); }
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -91,10 +103,13 @@ export const Products: React.FC = () => {
           filters={filters}
           onChange={handleFilterChange}
           totalResults={products.length}
+          categories={categories}
         />
 
         {/* Product Grid */}
-        {loading ? (
+        {loadError && !loading ? (
+          <div role="alert" className="bg-white border border-red-200 p-8 text-center text-sm text-red-700">{loadError}</div>
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <ProductCardSkeleton key={i} />
