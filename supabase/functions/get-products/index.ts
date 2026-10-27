@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
   const rawLimit = url.searchParams.get("limit") ?? "100";
   const rawOffset = url.searchParams.get("offset") ?? "0";
 
-  if (!/^\\d+$/.test(rawLimit) || !/^\\d+$/.test(rawOffset)) {
+  if (!/^\d+$/.test(rawLimit) || !/^\d+$/.test(rawOffset)) {
     return jsonResponse(
       { error: "limit and offset must be non-negative integers." },
       400,
