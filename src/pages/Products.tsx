@@ -13,19 +13,17 @@ export const Products: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // Sync state from URL parameters
-  const currentCategory = searchParams.get("category") || "all";
   const currentSearch = searchParams.get("search") || "";
   const currentSort = (searchParams.get("sort") as ProductFilters["sortBy"]) || "featured";
   const minPriceParam = searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined;
   const maxPriceParam = searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined;
 
   const filters: ProductFilters = useMemo(() => ({
-    categorySlug: currentCategory,
     search: currentSearch,
     sortBy: currentSort,
     minPrice: minPriceParam,
     maxPrice: maxPriceParam,
-  }), [currentCategory, currentSearch, currentSort, minPriceParam, maxPriceParam]);
+  }), [currentSearch, currentSort, minPriceParam, maxPriceParam]);
 
   useEffect(() => {
     let isMounted = true;
@@ -51,9 +49,6 @@ export const Products: React.FC = () => {
 
   const handleFilterChange = (updated: ProductFilters) => {
     const params: Record<string, string> = {};
-    if (updated.categorySlug && updated.categorySlug !== "all") {
-      params.category = updated.categorySlug;
-    }
     if (updated.search && updated.search.trim()) {
       params.search = updated.search.trim();
     }
@@ -110,7 +105,7 @@ export const Products: React.FC = () => {
               Coba kurangi filter atau cari dengan kata kunci lain untuk melihat koleksi Asri Collection.
             </p>
             <button
-              onClick={() => handleFilterChange({ categorySlug: "all", search: "" })}
+              onClick={() => handleFilterChange({ search: "" })
               className="mt-5 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-white bg-[#1C1917] hover:bg-[#9A3412] transition-colors"
             >
               Tampilkan Semua Produk

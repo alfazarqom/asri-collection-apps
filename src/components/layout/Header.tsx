@@ -48,22 +48,6 @@ export const Header: React.FC = () => {
               Beranda
             </Link>
             <Link
-              to="/products?category=dresses"
-              className={`hover:text-[#9A3412] transition-colors whitespace-nowrap shrink-0 py-1 ${
-                location.search.includes("dresses") ? "text-[#9A3412] border-b-2 border-[#9A3412]" : ""
-              }`}
-            >
-              Gamis & Dress
-            </Link>
-            <Link
-              to="/products?category=tops"
-              className={`hover:text-[#9A3412] transition-colors whitespace-nowrap shrink-0 py-1 ${
-                location.search.includes("tops") ? "text-[#9A3412] border-b-2 border-[#9A3412]" : ""
-              }`}
-            >
-              Tunik & Atasan
-            </Link>
-            <Link
               to="/products"
               className={`hover:text-[#9A3412] transition-colors whitespace-nowrap shrink-0 py-1 ${
                 location.pathname === "/products" && !location.search ? "text-[#9A3412] border-b-2 border-[#9A3412]" : ""
