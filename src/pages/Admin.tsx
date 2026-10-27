@@ -470,7 +470,7 @@ export const Admin: React.FC = () => {
   };
 
   const handleToggleProductStock = (prod: Product) => {
-    const newStock = prod.stock > 0 ? 0 : 25;
+    const newStock = (prod.stock ?? 0) > 0 ? 0 : 25;
     const updated = saveCustomProduct({ ...prod, stock: newStock });
     setProducts(updated);
     showAdminToast(
@@ -1287,7 +1287,7 @@ export const Admin: React.FC = () => {
                     >
                       <div className="flex gap-3">
                         <img
-                          src={p.thumbnail}
+                          src={p.thumbnail ?? ""}
                           alt={p.title}
                           referrerPolicy="no-referrer"
                           className="w-16 h-20 object-cover border border-[#E7DFD5] bg-[#FAF8F5] shrink-0"
@@ -1326,7 +1326,7 @@ export const Admin: React.FC = () => {
                           <button
                             onClick={() => handleToggleProductStock(p)}
                             className={`px-2 py-1 text-[10px] font-bold border transition-colors ${
-                              p.stock > 0
+                              (p.stock ?? 0) > 0
                                 ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                                 : "bg-rose-50 text-rose-800 border-rose-300"
                             }`}
@@ -1862,7 +1862,7 @@ export const Admin: React.FC = () => {
                     Kategori Busana *
                   </label>
                   <select
-                    value={editingProduct.categorySlug}
+                    value={editingProduct.categorySlug ?? ""}
                     onChange={(e) =>
                       setEditingProduct({ ...editingProduct, categorySlug: e.target.value })
                     }
@@ -1917,7 +1917,7 @@ export const Admin: React.FC = () => {
                   <input
                     type="number"
                     required
-                    value={editingProduct.stock}
+                    value={editingProduct.stock ?? 0}
                     onChange={(e) =>
                       setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })
                     }
@@ -1933,7 +1933,7 @@ export const Admin: React.FC = () => {
                 <input
                   type="text"
                   required
-                  value={editingProduct.material}
+                  value={editingProduct.material ?? ""}
                   onChange={(e) =>
                     setEditingProduct({ ...editingProduct, material: e.target.value })
                   }
@@ -2113,7 +2113,7 @@ export const Admin: React.FC = () => {
                 <textarea
                   required
                   rows={3}
-                  value={editingProduct.description}
+                  value={editingProduct.description ?? ""}
                   onChange={(e) =>
                     setEditingProduct({ ...editingProduct, description: e.target.value })
                   }
@@ -2127,7 +2127,7 @@ export const Admin: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={editingProduct.careInstructions}
+                  value={editingProduct.careInstructions ?? ""}
                   onChange={(e) =>
                     setEditingProduct({ ...editingProduct, careInstructions: e.target.value })
                   }
@@ -2254,7 +2254,7 @@ export const Admin: React.FC = () => {
                 </label>
                 <textarea
                   rows={2}
-                  value={editingCategory.description}
+                  value={editingCategory.description ?? ""}
                   onChange={(e) =>
                     setEditingCategory({ ...editingCategory, description: e.target.value })
                   }
