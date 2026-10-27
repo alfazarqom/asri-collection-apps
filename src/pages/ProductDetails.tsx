@@ -219,16 +219,16 @@ export const ProductDetails: React.FC = () => {
                 <div className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   <span className="font-bold text-[#1C1917] tabular-nums">
-                    {product.rating}
+                    {product.rating ?? "Belum ada rating"}
                   </span>
                 </div>
                 <span>·</span>
                 <span className="tabular-nums font-medium">
-                  {product.reviewCount} Ulasan Pembeli
+                  {product.reviewCount ?? 0} Ulasan Pembeli
                 </span>
                 <span>·</span>
                 <span className="text-emerald-700 font-medium">
-                  Stok Tersedia: {product.stock} pcs
+                  {product.stock === null ? "Stok belum tersedia" : `Stok Tersedia: ${product.stock} pcs`}
                 </span>
               </div>
 
