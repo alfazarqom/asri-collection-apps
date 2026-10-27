@@ -216,21 +216,19 @@ export const ProductDetails: React.FC = () => {
                 {product.title}
               </h1>
 
-              {/* Rating & Review */}
               <div className="flex items-center gap-3 mt-2.5 text-xs text-stone-600">
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-[#1C1917] tabular-nums">
-                    {product.rating}
-                  </span>
-                </div>
-                <span>·</span>
-                <span className="tabular-nums font-medium">
-                  {product.reviewCount} Ulasan Pembeli
-                </span>
-                <span>·</span>
-                <span className="text-emerald-700 font-medium">
-                  Stok Tersedia: {product.stock} pcs
+                {product.rating > 0 && (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span className="font-bold text-[#1C1917] tabular-nums">{product.rating}</span>
+                    </div>
+                    {product.reviewCount > 0 && <span>{product.reviewCount} Ulasan Pembeli</span>}
+                    <span>·</span>
+                  </>
+                )}
+                <span className={product.stock > 0 ? "text-emerald-700 font-medium" : "text-rose-700 font-medium"}>
+                  {product.stock > 0 ? `Stok Tersedia: ${product.stock} pcs` : "Stok habis"}
                 </span>
               </div>
 
@@ -428,15 +426,22 @@ export const ProductDetails: React.FC = () => {
             {activeTab === "desc" && (
               <div className="space-y-4">
                 <p>{product.description}</p>
-                <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[#E7DFD5]">
-                  <div>
-                    <span className="block font-bold text-[#1C1917]">Komposisi Material:</span>
-                    <span className="text-stone-600">{product.material}</span>
+                {(product.material || product.weightGrams > 0) && (
+                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[#E7DFD5]">
+                    {product.material && (
+                      <div>
+                        <span className="block font-bold text-[#1C1917]">Komposisi Material:</span>
+                        <span className="text-stone-600">{product.material}</span>
+                      </div>
+                    )}
+                    {product.weightGrams > 0 && (
+                      <div>
+                        <span className="block font-bold text-[#1C1917]">Berat Bersih:</span>
+                        <span className="text-stone-600 tabular-nums">{product.weightGrams} gram</span>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <span className="block font-bold text-[#1C1917]">Berat Bersih:</span>
-                    <span className="text-stone-600 tabular-nums">{product.weightGrams} gram</span>
-                  </div>
+                )}
                 </div>
               </div>
             )}
@@ -444,7 +449,7 @@ export const ProductDetails: React.FC = () => {
             {activeTab === "care" && (
               <div className="space-y-4">
                 <h4 className="font-bold text-[#1C1917]">Panduan Merawat Serat Sutra & Katun Poplin:</h4>
-                <p>{product.careInstructions}</p>
+                {product.careInstructions ? <p>{product.careInstructions}</p> : <p className="text-stone-500">Petunjuk perawatan belum tersedia.</p>}
                 <ul className="list-disc list-inside space-y-1.5 text-stone-600 pt-2">
                   <li>Gunakan detergen cair konsentrat netral tanpa pemutih (bleach).</li>
                   <li>Keringkan di tempat sejuk berangin dan hindari sinar matahari terik langsung.</li>
