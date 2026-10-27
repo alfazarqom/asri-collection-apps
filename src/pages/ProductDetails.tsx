@@ -13,7 +13,7 @@ import {
   Share2,
 } from "lucide-react";
 import { fetchProductBySlug, fetchProducts } from "../services/productApi.ts";
-import { Product, OFFICIAL_PRODUCTS } from "../data/defaultCatalog.ts";
+import { Product } from "../data/defaultCatalog.ts";
 import { formatRupiah } from "../utils/formatters.ts";
 import { useCart } from "../hooks/useCart.ts";
 import { SizeGuideModal } from "../components/ui/SizeGuideModal.tsx";
@@ -26,7 +26,7 @@ export const ProductDetails: React.FC = () => {
   const { addToCart, showToast } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [allProducts, setAllProducts] = useState<Product[]>(OFFICIAL_PRODUCTS);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Selected purchase state
@@ -39,29 +39,36 @@ export const ProductDetails: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
 
-    if (id) {
-      fetchProductBySlug(id).then((p) => {
-        if (isMounted) {
-          if (p) {
-            setProduct(p);
-            setSelectedImage(p.thumbnail);
-            setSelectedSize(p.sizes[0] || "All Size");
-            setSelectedColor(p.colors[0] || "Default");
-            setQuantity(1);
-          } else {
-            setProduct(null);
-          }
-          setLoading(false);
+    async function loadProduct() {
+      setLoading(true);
+      try {
+        const [foundProduct, products] = await Promise.all([
+          fetchProductBySlug(id || ""),
+          fetchProducts(),
+        ]);
+
+        if (!isMounted) return;
+        setProduct(foundProduct);
+        setAllProducts(products);
+        if (foundProduct) {
+          setSelectedImage(foundProduct.thumbnail);
+          setSelectedSize(foundProduct.sizes[0] || "All Size");
+          setSelectedColor(foundProduct.colors[0] || "Default");
+          setQuantity(1);
         }
-      });
-
-      fetchProducts().then((list) => {
-        if (isMounted) setAllProducts(list);
-      });
+      } catch (err) {
+        console.warn("Failed to load product details:", err);
+        if (isMounted) {
+          setProduct(null);
+          setAllProducts([]);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     }
 
+    void loadProduct();
     return () => {
       isMounted = false;
     };
