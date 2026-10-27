@@ -586,7 +586,7 @@ export const Admin: React.FC = () => {
                 </span>
               </div>
               <span className="text-[11px] text-stone-500 block">
-                Manajemen Pesanan, Produk & Kategori Butik
+                Manajemen Pesanan & Produk
               </span>
             </div>
           </div>
@@ -1294,8 +1294,7 @@ export const Admin: React.FC = () => {
                 <thead className="bg-[#FAF8F5] border-b border-[#E7DFD5] text-stone-700 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-4">Busana</th>
-                    <th className="py-3 px-4">Kategori</th>
-                    <th className="py-3 px-4">Harga & Diskon</th>
+                          <th className="py-3 px-4">Harga & Diskon</th>
                     <th className="py-3 px-4">Stok</th>
                     <th className="py-3 px-4">Label & Unggulan</th>
                     <th className="py-3 px-4 text-right">Aksi</th>
@@ -1321,10 +1320,6 @@ export const Admin: React.FC = () => {
                               </span>
                             </div>
                           </div>
-                        </td>
-
-                        <td className="py-3 px-4 whitespace-nowrap font-medium text-stone-700">
-                          {catName}
                         </td>
 
                         <td className="py-3 px-4 whitespace-nowrap">
@@ -1404,7 +1399,7 @@ export const Admin: React.FC = () => {
       </div>
 
       {/* ==================================================== */}
-      {/* BOTTOMNAV MOBILE (orders, kategori, products)        */}
+      {/* BOTTOMNAV MOBILE (orders, products)                    */}
       {/* ==================================================== */}
       <nav
         aria-label="Navigasi Pengelola Butik"
