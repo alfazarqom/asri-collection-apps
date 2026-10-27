@@ -1,14 +1,5 @@
 // Kurasi Resmi Katalog Asri Collection — Contemporary Modest & Modern Fashion
 
-export interface Category {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  itemCount: number;
-}
-
 export interface Product {
   id: string;
   slug: string;
@@ -19,7 +10,6 @@ export interface Product {
   discountPercentage?: number;
   rating: number;
   reviewCount: number;
-  categorySlug: string;
   thumbnail: string;
   images: string[];
   sizes: string[];
@@ -33,57 +23,6 @@ export interface Product {
   careInstructions: string;
 }
 
-export const OFFICIAL_CATEGORIES: Category[] = [
-  {
-    id: "cat-1",
-    slug: "dresses",
-    name: "Gamis & Dresses",
-    description: "Koleksi gamis dan dress muslimah kontemporer berbahan silk mulberry dan crinkle premium.",
-    imageUrl: "/src/assets/images/product_gamis_mulberry_1793090598263.jpg",
-    itemCount: 12,
-  },
-  {
-    id: "cat-2",
-    slug: "tops",
-    name: "Tunik & Blouse",
-    description: "Tunik bordir eksklusif berbahan katun poplin halus dengan siluet anggun.",
-    imageUrl: "/src/assets/images/product_tunik_bordir_1793090658906.jpg",
-    itemCount: 16,
-  },
-  {
-    id: "cat-3",
-    slug: "bags",
-    name: "Tas & Handbag",
-    description: "Tas kulit vegan premium berdesain minimalis dengan aksen gold hardware mewah.",
-    imageUrl: "/src/assets/images/product_vegan_leather_bag_1793090659374.jpg",
-    itemCount: 8,
-  },
-  {
-    id: "cat-4",
-    slug: "hijab",
-    name: "Hijab & Pashmina",
-    description: "Pashmina silk shimmer lembut dan breathable dengan kilau mewah alami.",
-    imageUrl: "/src/assets/images/product_pashmina_silk_1793090600850.jpg",
-    itemCount: 14,
-  },
-  {
-    id: "cat-5",
-    slug: "heels",
-    name: "Kitten Heels & Mules",
-    description: "Sepatu hak santun 3-5 cm berbahan kulit sintetis empuk dengan bantalan ergonomis.",
-    imageUrl: "/src/assets/images/hero_modest_fashion_banner_1793090597385.jpg",
-    itemCount: 6,
-  },
-  {
-    id: "cat-6",
-    slug: "fragrance",
-    name: "Eau de Parfum",
-    description: "Aroma eksklusif perpaduan Damask Rose, Vanilla Cream, dan Warm White Oud.",
-    imageUrl: "/src/assets/images/product_gamis_mulberry_1793090598263.jpg",
-    itemCount: 4,
-  },
-];
-
 export const OFFICIAL_PRODUCTS: Product[] = [
   {
     id: "prod-1",
@@ -96,7 +35,6 @@ export const OFFICIAL_PRODUCTS: Product[] = [
     discountPercentage: 19,
     rating: 4.95,
     reviewCount: 128,
-    categorySlug: "dresses",
     thumbnail: "/src/assets/images/product_gamis_mulberry_1793090598263.jpg",
     images: [
       "/src/assets/images/product_gamis_mulberry_1793090598263.jpg",
@@ -123,7 +61,6 @@ export const OFFICIAL_PRODUCTS: Product[] = [
     discountPercentage: 17,
     rating: 4.88,
     reviewCount: 94,
-    categorySlug: "tops",
     thumbnail: "/src/assets/images/product_tunik_bordir_1793090658906.jpg",
     images: [
       "/src/assets/images/product_tunik_bordir_1793090658906.jpg",
@@ -149,7 +86,6 @@ export const OFFICIAL_PRODUCTS: Product[] = [
     discountPercentage: 20,
     rating: 4.92,
     reviewCount: 76,
-    categorySlug: "bags",
     thumbnail: "/src/assets/images/product_vegan_leather_bag_1793090659374.jpg",
     images: [
       "/src/assets/images/product_vegan_leather_bag_1793090659374.jpg",
@@ -175,7 +111,6 @@ export const OFFICIAL_PRODUCTS: Product[] = [
     discountPercentage: 18,
     rating: 4.98,
     reviewCount: 210,
-    categorySlug: "hijab",
     thumbnail: "/src/assets/images/product_pashmina_silk_1793090600850.jpg",
     images: [
       "/src/assets/images/product_pashmina_silk_1793090600850.jpg",
@@ -201,7 +136,6 @@ export const OFFICIAL_PRODUCTS: Product[] = [
     discountPercentage: 16,
     rating: 4.9,
     reviewCount: 48,
-    categorySlug: "dresses",
     thumbnail: "/src/assets/images/product_gamis_mulberry_1793090598263.jpg",
     images: [
       "/src/assets/images/product_gamis_mulberry_1793090598263.jpg",
@@ -227,7 +161,6 @@ export const OFFICIAL_PRODUCTS: Product[] = [
     discountPercentage: 13,
     rating: 4.87,
     reviewCount: 62,
-    categorySlug: "heels",
     thumbnail: "/src/assets/images/hero_modest_fashion_banner_1793090597385.jpg",
     images: [
       "/src/assets/images/hero_modest_fashion_banner_1793090597385.jpg",
@@ -253,7 +186,6 @@ export const OFFICIAL_PRODUCTS: Product[] = [
     discountPercentage: 17,
     rating: 4.96,
     reviewCount: 89,
-    categorySlug: "fragrance",
     thumbnail: "/src/assets/images/product_pashmina_silk_1793090600850.jpg",
     images: [
       "/src/assets/images/product_pashmina_silk_1793090600850.jpg",
@@ -279,7 +211,6 @@ export const OFFICIAL_PRODUCTS: Product[] = [
     discountPercentage: 14,
     rating: 4.84,
     reviewCount: 51,
-    categorySlug: "tops",
     thumbnail: "/src/assets/images/product_tunik_bordir_1793090658906.jpg",
     images: [
       "/src/assets/images/product_tunik_bordir_1793090658906.jpg",

@@ -38,40 +38,15 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Kolom 2: Belanja & Kategori */}
+          {/* Kolom 2: Belanja */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-amber-200">
-              Koleksi Pilihan
+              Belanja
             </h4>
             <ul className="space-y-2 text-xs text-stone-400">
               <li>
-                <Link to="/products?category=dresses" className="hover:text-white transition-colors">
-                  Gamis Silk Mulberry
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=tops" className="hover:text-white transition-colors">
-                  Tunik Bordir Katun Poplin
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=bags" className="hover:text-white transition-colors">
-                  Tas & Handbag Kulit Vegan
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=hijab" className="hover:text-white transition-colors">
-                  Pashmina Silk Shimmer
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=heels" className="hover:text-white transition-colors">
-                  Sepatu Kitten Heels Santun
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=fragrance" className="hover:text-white transition-colors">
-                  Eau de Parfum Oud & Rose
+                <Link to="/products" className="hover:text-white transition-colors">
+                  Lihat Semua Produk
                 </Link>
               </li>
             </ul>

@@ -6,7 +6,6 @@ import {
   KeyRound,
   LogOut,
   Package,
-  FolderTree,
   TrendingUp,
   Search,
   Filter,
@@ -36,15 +35,10 @@ import {
   Loader2,
 } from "lucide-react";
 import {
-  Category,
   Product,
-  OFFICIAL_CATEGORIES,
   OFFICIAL_PRODUCTS,
 } from "../data/defaultCatalog.ts";
 import {
-  getCustomCategories,
-  saveCustomCategory,
-  deleteCustomCategory,
   getCustomProducts,
   saveCustomProduct,
   deleteCustomProduct,
@@ -101,7 +95,7 @@ export const Admin: React.FC = () => {
   const [pinChangeMsg, setPinChangeMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Active Admin View Tab
-  const [activeTab, setActiveTab] = useState<"orders" | "products" | "categories">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "products">("orders");
 
   // Orders State
   const [orders, setOrders] = useState<any[]>([]);
@@ -113,14 +107,8 @@ export const Admin: React.FC = () => {
   // Products State
   const [products, setProducts] = useState<Product[]>([]);
   const [productSearch, setProductSearch] = useState("");
-  const [productCategoryFilter, setProductCategoryFilter] = useState("all");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
-
-  // Categories State
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
 
   // Notifications
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -253,36 +241,11 @@ export const Admin: React.FC = () => {
     }
   };
 
-  const handleCategoryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editingCategory) return;
-
-    setIsUploadingImage(true);
-    setUploadProgressText("Mengunggah gambar kategori ke Cloudinary...");
-
-    try {
-      const url = await uploadImageToCloudinary(file);
-      setEditingCategory({
-        ...editingCategory,
-        imageUrl: url,
-      });
-      showAdminToast("Foto kategori berhasil diunggah ke Cloudinary!");
-    } catch (err: any) {
-      console.error("Category image upload failed:", err);
-      alert(`Gagal upload ke Cloudinary: ${err.message}`);
-    } finally {
-      setIsUploadingImage(false);
-      setUploadProgressText(null);
-      e.target.value = "";
-    }
-  };
-
   // Load initial data
   const loadData = useCallback(() => {
     const loadedOrders = seedInitialOrdersIfEmpty();
     setOrders(loadedOrders);
     setProducts(getCustomProducts());
-    setCategories(getCustomCategories());
   }, []);
 
   useEffect(() => {
@@ -487,28 +450,9 @@ export const Admin: React.FC = () => {
         p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
         p.sku?.toLowerCase().includes(productSearch.toLowerCase()) ||
         p.material.toLowerCase().includes(productSearch.toLowerCase());
-      const matchCat =
-        productCategoryFilter === "all" || p.categorySlug === productCategoryFilter;
-      return matchSearch && matchCat;
+      return matchSearch;
     });
-  }, [products, productSearch, productCategoryFilter]);
-
-  // Category Actions
-  const handleSaveCategorySubmit = (categoryData: Category) => {
-    const updated = saveCustomCategory(categoryData);
-    setCategories(updated);
-    setEditingCategory(null);
-    setIsAddingCategory(false);
-    showAdminToast(`Kategori "${categoryData.name}" berhasil disimpan.`);
-  };
-
-  const handleDeleteCategory = (cat: Category) => {
-    if (window.confirm(`Hapus kategori "${cat.name}"?`)) {
-      const updated = deleteCustomCategory(cat.id);
-      setCategories(updated);
-      showAdminToast(`Kategori "${cat.name}" berhasil dihapus.`);
-    }
-  };
+  }, [products, productSearch]);
 
   // ==========================================
   // VIEW: 6-Digit NumberPad Authentication
@@ -642,7 +586,7 @@ export const Admin: React.FC = () => {
                 </span>
               </div>
               <span className="text-[11px] text-stone-500 block">
-                Manajemen Pesanan, Produk & Kategori Butik
+                Manajemen Pesanan & Produk Butik
               </span>
             </div>
           </div>
@@ -705,15 +649,6 @@ export const Admin: React.FC = () => {
             </span>
           </div>
 
-          <div className="bg-white border border-[#E7DFD5] p-4 space-y-1">
-            <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">
-              Kategori Busana
-            </span>
-            <div className="text-xl sm:text-2xl font-serif font-bold text-[#1C1917]">
-              {categories.length} Kategori
-            </div>
-            <span className="text-[10px] text-stone-400">Gamis, Tunik, Tas, Hijab, dll</span>
-          </div>
         </div>
 
         {/* Tab Switcher */}
@@ -742,17 +677,6 @@ export const Admin: React.FC = () => {
             <span>Katalog Products ({products.length})</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab("categories")}
-            className={`py-3.5 px-6 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 border-b-2 ${
-              activeTab === "categories"
-                ? "border-[#9A3412] text-[#9A3412] bg-[#FAF8F5]"
-                : "border-transparent text-stone-600 hover:text-[#1C1917]"
-            }`}
-          >
-            <FolderTree className="w-4 h-4" />
-            <span>Categories ({categories.length})</span>
-          </button>
         </div>
 
         {/* ==================================================== */}
@@ -1225,19 +1149,7 @@ export const Admin: React.FC = () => {
                   />
                 </div>
 
-                <select
-                  value={productCategoryFilter}
-                  onChange={(e) => setProductCategoryFilter(e.target.value)}
-                  className="text-xs py-2 px-3 border border-[#E7DFD5] bg-[#FAF8F5] focus:outline-none focus:border-[#9A3412]"
-                >
-                  <option value="all">Semua Kategori</option>
-                  {categories.map((c) => (
-                    <option key={c.slug} value={c.slug}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+</div>
 
               <button
                 onClick={() => {
@@ -1251,7 +1163,6 @@ export const Admin: React.FC = () => {
                     discountPercentage: 15,
                     rating: 4.9,
                     reviewCount: 10,
-                    categorySlug: categories[0]?.slug || "dresses",
                     thumbnail: "/src/assets/images/product_gamis_mulberry_1793090598263.jpg",
                     images: ["/src/assets/images/product_gamis_mulberry_1793090598263.jpg"],
                     sizes: ["S", "M", "L", "XL"],
@@ -1281,7 +1192,6 @@ export const Admin: React.FC = () => {
                 </div>
               ) : (
                 filteredProducts.map((p) => {
-                  const catName = categories.find((c) => c.slug === p.categorySlug)?.name || p.categorySlug;
                   return (
                     <div
                       key={p.id}
@@ -1296,10 +1206,7 @@ export const Admin: React.FC = () => {
                         />
                         <div className="flex-1 min-w-0 space-y-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9A3412] bg-[#FAF8F5] px-1.5 py-0.5 border border-[#E7DFD5]">
-                              {catName}
-                            </span>
-                            <span className="font-mono text-[10px] text-stone-400">
+<span className="font-mono text-[10px] text-stone-400">
                               {p.sku}
                             </span>
                           </div>
@@ -1387,8 +1294,7 @@ export const Admin: React.FC = () => {
                 <thead className="bg-[#FAF8F5] border-b border-[#E7DFD5] text-stone-700 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-4">Busana</th>
-                    <th className="py-3 px-4">Kategori</th>
-                    <th className="py-3 px-4">Harga & Diskon</th>
+<th className="py-3 px-4">Harga & Diskon</th>
                     <th className="py-3 px-4">Stok</th>
                     <th className="py-3 px-4">Label & Unggulan</th>
                     <th className="py-3 px-4 text-right">Aksi</th>
@@ -1396,7 +1302,6 @@ export const Admin: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-[#E7DFD5]">
                   {filteredProducts.map((p) => {
-                    const catName = categories.find((c) => c.slug === p.categorySlug)?.name || p.categorySlug;
                     return (
                       <tr key={p.id} className="hover:bg-stone-50/70 transition-colors">
                         <td className="py-3 px-4">
@@ -1415,10 +1320,6 @@ export const Admin: React.FC = () => {
                               </span>
                             </div>
                           </div>
-                        </td>
-
-                        <td className="py-3 px-4 whitespace-nowrap font-medium text-stone-700">
-                          {catName}
                         </td>
 
                         <td className="py-3 px-4 whitespace-nowrap">
@@ -1495,114 +1396,16 @@ export const Admin: React.FC = () => {
           </div>
         )}
 
-        {/* ==================================================== */}
-        {/* TAB 3: KELOLA CATEGORIES                            */}
-        {/* ==================================================== */}
-        {activeTab === "categories" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between bg-white border border-[#E7DFD5] p-4">
-              <div>
-                <h3 className="font-serif text-base font-bold text-[#1C1917]">
-                  Daftar Kategori Busana Butik
-                </h3>
-                <p className="text-xs text-stone-500">
-                  Kelola nama kelompok pakaian dan klasifikasi busana di katalog storefront.
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  setEditingCategory({
-                    id: `cat-${Date.now()}`,
-                    slug: `kategori-${Date.now().toString().slice(-4)}`,
-                    name: "",
-                    description: "",
-                    imageUrl: "/src/assets/images/hero_modest_fashion_banner_1793090597385.jpg",
-                    itemCount: 0,
-                  });
-                  setIsAddingCategory(true);
-                }}
-                className="py-2 px-4 text-xs font-bold uppercase tracking-wider text-white bg-[#9A3412] hover:bg-[#7C2D12] transition-colors flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Tambah Kategori</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((cat) => {
-                const productCount = products.filter((p) => p.categorySlug === cat.slug).length;
-                return (
-                  <div
-                    key={cat.id}
-                    className="bg-white border border-[#E7DFD5] p-5 flex flex-col justify-between shadow-xs hover:border-[#9A3412] transition-colors"
-                  >
-                    <div className="space-y-3">
-                      <div className="aspect-[16/9] bg-stone-100 border border-[#E7DFD5] overflow-hidden">
-                        <img
-                          src={cat.imageUrl}
-                          alt={cat.name}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-serif text-base font-bold text-[#1C1917]">
-                            {cat.name}
-                          </h4>
-                          <span className="text-[10px] font-mono bg-stone-100 text-stone-600 px-2 py-0.5">
-                            /{cat.slug}
-                          </span>
-                        </div>
-                        <p className="text-xs text-stone-500 mt-1 line-clamp-2">
-                          {cat.description || "Tidak ada deskripsi."}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-[#E7DFD5] mt-4 flex items-center justify-between text-xs">
-                      <span className="text-stone-500 font-semibold">
-                        {productCount} Busana terkait
-                      </span>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            setEditingCategory(cat);
-                            setIsAddingCategory(false);
-                          }}
-                          className="p-1.5 text-stone-600 hover:text-[#9A3412] bg-[#FAF8F5] border border-[#E7DFD5]"
-                          title="Edit Kategori"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-
-                        <button
-                          onClick={() => handleDeleteCategory(cat)}
-                          className="p-1.5 text-rose-600 hover:text-rose-800 bg-rose-50 border border-rose-200"
-                          title="Hapus Kategori"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ==================================================== */}
-      {/* BOTTOMNAV MOBILE (orders, kategori, products)        */}
+      {/* BOTTOMNAV MOBILE (orders, products)                    */}
       {/* ==================================================== */}
       <nav
         aria-label="Navigasi Pengelola Butik"
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E7DFD5] shadow-[0_-4px_16px_rgba(0,0,0,0.06)]"
       >
-        <div className="grid grid-cols-3 h-16 max-w-md mx-auto">
+        <div className="grid grid-cols-2 h-16 max-w-md mx-auto">
           {/* 1. Orders */}
           <button
             type="button"
@@ -1626,33 +1429,6 @@ export const Admin: React.FC = () => {
             </div>
             <span className="text-[11px] tracking-tight">Orders</span>
             {activeTab === "orders" && (
-              <span className="absolute bottom-0 w-10 h-0.5 bg-[#9A3412] rounded-full" />
-            )}
-          </button>
-
-          {/* 2. Kategori */}
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab("categories");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className={`flex flex-col items-center justify-center gap-1 transition-all relative select-none ${
-              activeTab === "categories"
-                ? "text-[#9A3412] font-bold"
-                : "text-stone-500 hover:text-stone-800 font-medium"
-            }`}
-          >
-            <div className="relative">
-              <FolderTree className="w-5 h-5" />
-              {categories.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-stone-700 text-white text-[9px] font-bold px-1 rounded-full min-w-4 text-center leading-3.5">
-                  {categories.length}
-                </span>
-              )}
-            </div>
-            <span className="text-[11px] tracking-tight">Kategori</span>
-            {activeTab === "categories" && (
               <span className="absolute bottom-0 w-10 h-0.5 bg-[#9A3412] rounded-full" />
             )}
           </button>
@@ -1843,7 +1619,7 @@ export const Admin: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block font-semibold text-stone-700 mb-1">
                     Slug URL *
@@ -1859,24 +1635,6 @@ export const Admin: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-stone-700 mb-1">
-                    Kategori Busana *
-                  </label>
-                  <select
-                    value={editingProduct.categorySlug}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, categorySlug: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-[#E7DFD5] bg-white"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.slug} value={c.slug}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -2177,143 +1935,6 @@ export const Admin: React.FC = () => {
                   className="py-2.5 px-6 text-xs font-bold uppercase tracking-wider text-white bg-[#1C1917] hover:bg-[#9A3412] transition-colors"
                 >
                   Simpan Busana
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ==================================================== */}
-      {/* MODAL: TAMBAH / EDIT KATEGORI                        */}
-      {/* ==================================================== */}
-      {editingCategory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white border border-[#E7DFD5] max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E7DFD5]">
-              <h3 className="font-serif text-lg font-bold text-[#1C1917]">
-                {isAddingCategory ? "Tambah Kategori Baru" : `Edit Kategori: ${editingCategory.name}`}
-              </h3>
-              <button
-                onClick={() => setEditingCategory(null)}
-                className="text-stone-400 hover:text-stone-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSaveCategorySubmit(editingCategory);
-              }}
-              className="space-y-4 text-xs"
-            >
-              <div>
-                <label className="block font-semibold text-stone-700 mb-1">
-                  Nama Kategori *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: Gamis & Abaya"
-                  value={editingCategory.name}
-                  onChange={(e) =>
-                    setEditingCategory({
-                      ...editingCategory,
-                      name: e.target.value,
-                      slug: isAddingCategory
-                        ? e.target.value
-                            .toLowerCase()
-                            .replace(/[^a-z0-9]+/g, "-")
-                            .replace(/^-|-$/g, "")
-                        : editingCategory.slug,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-[#E7DFD5] bg-white focus:outline-none focus:border-[#9A3412]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-stone-700 mb-1">
-                  Slug URL *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="contoh: gamis-abaya"
-                  value={editingCategory.slug}
-                  onChange={(e) =>
-                    setEditingCategory({ ...editingCategory, slug: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-[#E7DFD5] bg-white font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-stone-700 mb-1">
-                  Deskripsi Kategori
-                </label>
-                <textarea
-                  rows={2}
-                  value={editingCategory.description}
-                  onChange={(e) =>
-                    setEditingCategory({ ...editingCategory, description: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-[#E7DFD5] bg-white"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block font-semibold text-stone-700">
-                    URL Gambar Kategori *
-                  </label>
-                  <label className="text-[11px] font-bold text-white bg-emerald-700 hover:bg-emerald-800 px-2.5 py-1 flex items-center gap-1 cursor-pointer">
-                    <UploadCloud className="w-3.5 h-3.5" />
-                    <span>Upload Cloudinary</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCategoryImageUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={editingCategory.imageUrl}
-                  onChange={(e) =>
-                    setEditingCategory({ ...editingCategory, imageUrl: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-[#E7DFD5] bg-white font-mono"
-                />
-                {editingCategory.imageUrl && (
-                  <div className="mt-2 w-28 h-16 border border-[#E7DFD5] overflow-hidden bg-stone-100">
-                    <img
-                      src={editingCategory.imageUrl}
-                      alt="Preview Kategori"
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3 border-t border-[#E7DFD5]">
-                <button
-                  type="button"
-                  onClick={() => setEditingCategory(null)}
-                  className="py-2.5 px-4 text-xs font-semibold text-stone-700 bg-[#FAF8F5] hover:bg-[#F4EFEA] border border-[#E7DFD5]"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="py-2.5 px-6 text-xs font-bold uppercase tracking-wider text-white bg-[#1C1917] hover:bg-[#9A3412] transition-colors"
-                >
-                  Simpan Kategori
                 </button>
               </div>
             </form>

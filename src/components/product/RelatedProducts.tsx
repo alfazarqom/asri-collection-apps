@@ -4,17 +4,15 @@ import { ProductCard } from "./ProductCard.tsx";
 
 interface RelatedProductsProps {
   currentProductId: string;
-  categorySlug: string;
   allProducts: Product[];
 }
 
 export const RelatedProducts: React.FC<RelatedProductsProps> = ({
   currentProductId,
-  categorySlug,
   allProducts,
 }) => {
   const related = allProducts
-    .filter((p) => p.id !== currentProductId && (p.categorySlug === categorySlug || p.isFeatured))
+    .filter((p) => p.id !== currentProductId && p.isFeatured)
     .slice(0, 4);
 
   if (related.length === 0) return null;

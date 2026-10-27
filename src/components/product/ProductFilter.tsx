@@ -13,16 +13,6 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
   onChange,
   totalResults,
 }) => {
-  const categories = [
-    { label: "Semua", value: "all" },
-    { label: "Gamis & Dress", value: "dresses" },
-    { label: "Tunik & Blouse", value: "tops" },
-    { label: "Tas Kulit Vegan", value: "bags" },
-    { label: "Hijab & Pashmina", value: "hijab" },
-    { label: "Kitten Heels", value: "heels" },
-    { label: "Parfum Butik", value: "fragrance" },
-  ];
-
   const priceRanges = [
     { label: "Semua Harga", min: undefined, max: undefined },
     { label: "< Rp 250rb", min: 0, max: 250000 },
@@ -37,7 +27,6 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
 
   const handleReset = () => {
     onChange({
-      categorySlug: "all",
       search: "",
       minPrice: undefined,
       maxPrice: undefined,
@@ -47,7 +36,6 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
   };
 
   const hasActiveFilters =
-    (filters.categorySlug && filters.categorySlug !== "all") ||
     filters.minPrice !== undefined ||
     filters.maxPrice !== undefined ||
     (filters.search && filters.search.length > 0) ||
@@ -55,45 +43,6 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
 
   return (
     <div className="bg-white border border-[#E7DFD5] p-5 mb-8 space-y-5">
-      {/* Top row: Category segmented buttons */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-stone-700">
-            Kategori Busana
-          </span>
-          {hasActiveFilters && (
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-[#9A3412] hover:underline"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Filter</span>
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => {
-            const active =
-              (!filters.categorySlug && cat.value === "all") ||
-              filters.categorySlug === cat.value;
-            return (
-              <button
-                key={cat.value}
-                onClick={() => onChange({ ...filters, categorySlug: cat.value })}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
-                  active
-                    ? "bg-[#1C1917] text-white"
-                    : "bg-[#FAF8F5] text-stone-700 hover:bg-[#F4EFEA] border border-[#E7DFD5]"
-                }`}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Second row: Price range and Sort selector */}
       <div className="pt-4 border-t border-[#E7DFD5] flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Price filter buttons */}
