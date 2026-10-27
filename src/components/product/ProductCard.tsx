@@ -73,11 +73,13 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             <span className="uppercase tracking-wider font-medium">
               {product.categorySlug}
             </span>
-            <div className="flex items-center gap-1 text-stone-700">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-              <span className="tabular-nums font-semibold">{product.rating}</span>
-              <span className="text-stone-400">({product.reviewCount})</span>
-            </div>
+            {product.rating > 0 && (
+              <div className="flex items-center gap-1 text-stone-700">
+                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                <span className="tabular-nums font-semibold">{product.rating}</span>
+                {product.reviewCount > 0 && <span className="text-stone-400">({product.reviewCount})</span>}
+              </div>
+            )}
           </div>
 
           {/* Product Title */}
