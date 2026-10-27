@@ -12,7 +12,8 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1, product.sizes[0], product.colors[0]);
+    if ((product.stock ?? 0) <= 0) return;
+    addToCart(product, 1, product.sizes?.[0] ?? "", product.colors?.[0] ?? "");
   };
 
   return (
@@ -24,7 +25,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
       >
         {!imageError ? (
           <img
-            src={product.thumbnail}
+            src={product.thumbnail ?? ""}
             alt={product.title}
             referrerPolicy="no-referrer"
             onError={() => setImageError(true)}
@@ -71,13 +72,13 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           {/* Category & Rating */}
           <div className="flex items-center justify-between text-[11px] text-stone-500 mb-1">
             <span className="uppercase tracking-wider font-medium">
-              {product.categorySlug}
+              {product.categorySlug || "Kategori belum ditetapkan"}
             </span>
-            <div className="flex items-center gap-1 text-stone-700">
+            {product.rating !== null && product.rating !== undefined && <div className="flex items-center gap-1 text-stone-700">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
               <span className="tabular-nums font-semibold">{product.rating}</span>
-              <span className="text-stone-400">({product.reviewCount})</span>
-            </div>
+              <span className="text-stone-400">({product.reviewCount ?? 0})</span>
+            </div>}
           </div>
 
           {/* Product Title */}
@@ -95,7 +96,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             <span className="text-sm font-bold text-[#1C1917] tabular-nums">
               {formatRupiah(product.price)}
             </span>
-            {product.originalPrice && product.originalPrice > product.price && (
+            {product.originalPrice !== null && product.originalPrice !== undefined && product.originalPrice > product.price && (
               <span className="text-xs text-stone-400 line-through tabular-nums">
                 {formatRupiah(product.originalPrice)}
               </span>
