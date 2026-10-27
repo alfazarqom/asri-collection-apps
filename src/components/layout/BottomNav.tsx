@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingBag, PackageCheck, MessageCircle } from "lucide-react";
+import { Home, Grid, ShoppingBag, PackageCheck, MessageCircle } from "lucide-react";
 import { useCart } from "../../hooks/useCart.ts";
 
 export const BottomNav: React.FC = () => {
@@ -27,6 +27,16 @@ export const BottomNav: React.FC = () => {
       >
         <Home className="w-4 h-4 mb-0.5" />
         <span>Beranda</span>
+      </Link>
+
+      <Link
+        to="/products"
+        className={`flex flex-col items-center justify-center py-1 px-2 text-[10px] font-medium transition-colors ${
+          isCurrent("/products") ? "text-[#9A3412]" : "text-stone-500 hover:text-stone-900"
+        }`}
+      >
+        <Grid className="w-4 h-4 mb-0.5" />
+        <span>Katalog</span>
       </Link>
 
       <button
