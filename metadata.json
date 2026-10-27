@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Asri Collection — Modest Fashion Storefront",
+  "description": "Butik busana muslimah dan fashion wanita kontemporer premium dengan pembayaran terintegrasi Duitku POP dan Supabase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

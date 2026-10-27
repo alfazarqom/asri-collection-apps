@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asri Collection — Modest & Modern Fashion</title>
+    <meta name="description" content="Butik busana muslimah dan fashion wanita kontemporer premium dengan pembayaran terintegrasi Duitku POP dan Supabase." />
+    <meta property="og:title" content="Asri Collection — Modest & Modern Fashion" />
+    <meta property="og:description" content="Butik busana muslimah dan fashion wanita kontemporer premium dengan pembayaran terintegrasi Duitku POP dan Supabase." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet" />
+    <!-- Duitku POP Checkout Library (Sandbox) -->
+    <script src="https://app-sandbox.duitku.com/lib/js/duitku.js"></script>
+    <script>
+      (function() {
+        // Polyfill window.checkout.run jika pustaka mendefinisikan checkout.process
+        function ensureCheckoutRun() {
+          if (typeof window.checkout !== "undefined") {
+            if (!window.checkout.run && typeof window.checkout.process === "function") {
+              window.checkout.run = function(reference, options) {
+                return window.checkout.process(reference, options || {});
+              };
+            }
+          }
+        }
+        window.addEventListener("load", ensureCheckoutRun);
+        setInterval(ensureCheckoutRun, 500);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
