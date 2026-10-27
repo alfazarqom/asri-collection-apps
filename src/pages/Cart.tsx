@@ -703,7 +703,7 @@ export const Cart: React.FC = () => {
                 {cart.map((item: CartItem) => (
                   <div key={item.id} className="py-3 flex gap-3">
                     <img
-                      src={item.product.thumbnail}
+                      src={item.product.thumbnail ?? ""}
                       alt={item.product.title}
                       referrerPolicy="no-referrer"
                       className="w-14 h-16 object-cover border border-[#E7DFD5] bg-[#FAF8F5] shrink-0"
