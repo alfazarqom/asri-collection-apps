@@ -168,7 +168,7 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
   switch (filters.sortBy) {
     case "price-asc": filtered.sort((a, b) => a.price - b.price); break;
     case "price-desc": filtered.sort((a, b) => b.price - a.price); break;
-    case "newest": filtered.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)); break;
+    case "newest": filtered.sort((a, b) => Date.parse(b.created_at ?? "") - Date.parse(a.created_at ?? "")); break;
     case "rating": filtered.sort((a, b) => (b.rating ?? -Infinity) - (a.rating ?? -Infinity)); break;
     case "featured":
     default: filtered.sort((a, b) => Number(b.is_featured) - Number(a.is_featured)); break;
