@@ -484,7 +484,7 @@ export const Admin: React.FC = () => {
       const matchSearch =
         p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
         p.sku?.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.material.toLowerCase().includes(productSearch.toLowerCase());
+        (p.material ?? "").toLowerCase().includes(productSearch.toLowerCase());
       const matchCat =
         productCategoryFilter === "all" || p.categorySlug === productCategoryFilter;
       return matchSearch && matchCat;
