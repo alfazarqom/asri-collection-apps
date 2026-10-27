@@ -7,13 +7,14 @@ import { PromoBannerSection } from "../components/home/PromoBannerSection.tsx";
 import { NewArrivals } from "../components/home/NewArrivals.tsx";
 import { BrandStorySection } from "../components/home/BrandStorySection.tsx";
 import { fetchCategories, fetchProducts } from "../services/productApi.ts";
-import { Category, Product, OFFICIAL_CATEGORIES, OFFICIAL_PRODUCTS } from "../data/defaultCatalog.ts";
+import { Category, Product, OFFICIAL_CATEGORIES } from "../data/defaultCatalog.ts";
 import { Spinner } from "../components/ui/Loader.tsx";
 
 export const Home: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>(OFFICIAL_CATEGORIES);
-  const [products, setProducts] = useState<Product[]>(OFFICIAL_PRODUCTS);
-  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [productLoadError, setProductLoadError] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -29,6 +30,7 @@ export const Home: React.FC = () => {
         }
       } catch (err) {
         console.warn("Home initial load error:", err);
+        if (isMounted) setProductLoadError(true);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -44,6 +46,16 @@ export const Home: React.FC = () => {
       <HeroSlider />
       <FacilitiesSection />
       <CategorySection categories={categories} />
+      {productLoadError && (
+        <div role="alert" className="mx-auto max-w-7xl px-4 py-6 text-sm text-stone-600">
+          Produk belum dapat dimuat. Silakan coba lagi beberapa saat.
+        </div>
+      )}
+      {!loading && !productLoadError && products.length === 0 && (
+        <div className="mx-auto max-w-7xl px-4 py-6 text-sm text-stone-600">
+          Belum ada produk untuk ditampilkan.
+        </div>
+      )}
       <FeaturedProducts products={products} />
       <PromoBannerSection />
       <NewArrivals products={products} />
