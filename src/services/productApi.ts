@@ -1,10 +1,5 @@
 import { supabase, isSupabaseConfigured } from "../lib/supabase.ts";
-import {
-  Category,
-  Product,
-  OFFICIAL_CATEGORIES,
-  OFFICIAL_PRODUCTS,
-} from "../data/defaultCatalog.ts";
+import { Category, Product } from "../data/defaultCatalog.ts";
 
 export interface ProductFilters {
   categorySlug?: string;
@@ -18,34 +13,29 @@ export interface ProductFilters {
 export const LOCAL_PRODUCTS_KEY = "asri_custom_products";
 export const LOCAL_CATEGORIES_KEY = "asri_custom_categories";
 
+// These helpers remain for the legacy admin editor only. They never seed sample
+// records, and storefront fetches below never read from localStorage.
 export function getCustomCategories(): Category[] {
   try {
     const raw = localStorage.getItem(LOCAL_CATEGORIES_KEY);
-    if (raw) return JSON.parse(raw);
-    localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(OFFICIAL_CATEGORIES));
-    return OFFICIAL_CATEGORIES;
+    return raw ? JSON.parse(raw) as Category[] : [];
   } catch {
-    return OFFICIAL_CATEGORIES;
+    return [];
   }
 }
 
 export function saveCustomCategory(cat: Category): Category[] {
   const all = getCustomCategories();
   const exists = all.findIndex((c) => c.id === cat.id || c.slug === cat.slug);
-  let updated: Category[];
-  if (exists >= 0) {
-    updated = [...all];
-    updated[exists] = cat;
-  } else {
-    updated = [cat, ...all];
-  }
+  const updated = exists >= 0
+    ? all.map((item, index) => index === exists ? cat : item)
+    : [cat, ...all];
   localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(updated));
   return updated;
 }
 
 export function deleteCustomCategory(idOrSlug: string): Category[] {
-  const all = getCustomCategories();
-  const updated = all.filter((c) => c.id !== idOrSlug && c.slug !== idOrSlug);
+  const updated = getCustomCategories().filter((c) => c.id !== idOrSlug && c.slug !== idOrSlug);
   localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(updated));
   return updated;
 }
@@ -53,159 +43,147 @@ export function deleteCustomCategory(idOrSlug: string): Category[] {
 export function getCustomProducts(): Product[] {
   try {
     const raw = localStorage.getItem(LOCAL_PRODUCTS_KEY);
-    if (raw) return JSON.parse(raw);
-    localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(OFFICIAL_PRODUCTS));
-    return OFFICIAL_PRODUCTS;
+    return raw ? JSON.parse(raw) as Product[] : [];
   } catch {
-    return OFFICIAL_PRODUCTS;
+    return [];
   }
 }
 
 export function saveCustomProduct(prod: Product): Product[] {
   const all = getCustomProducts();
   const exists = all.findIndex((p) => p.id === prod.id);
-  let updated: Product[];
-  if (exists >= 0) {
-    updated = [...all];
-    updated[exists] = prod;
-  } else {
-    updated = [prod, ...all];
-  }
+  const updated = exists >= 0
+    ? all.map((item, index) => index === exists ? prod : item)
+    : [prod, ...all];
   localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(updated));
   return updated;
 }
 
 export function deleteCustomProduct(id: string): Product[] {
-  const all = getCustomProducts();
-  const updated = all.filter((p) => p.id !== id);
+  const updated = getCustomProducts().filter((p) => p.id !== id);
   localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(updated));
   return updated;
 }
 
-export async function fetchCategories(): Promise<Category[]> {
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-
-      if (!error && data && data.length > 0) {
-        return data.map((item: any) => ({
-          id: item.id,
-          slug: item.slug,
-          name: item.name,
-          description: item.description || "",
-          imageUrl: item.image_url || "/src/assets/images/hero_modest_fashion_banner_1793090597385.jpg",
-          itemCount: 10,
-        }));
-      }
-    } catch (err) {
-      console.warn("Supabase category fetch error, falling back to local catalog:", err);
-    }
+function requireSupabase() {
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error("Supabase belum dikonfigurasi. Katalog tidak dapat dimuat.");
   }
-  return getCustomCategories();
+  return supabase;
+}
+
+export async function fetchCategories(): Promise<Category[]> {
+  const client = requireSupabase();
+  const [{ data, error }, { data: productRows, error: productError }] = await Promise.all([
+    client.from("categories").select("*").eq("is_active", true).order("display_order", { ascending: true }),
+    client.from("products").select("category_slug").eq("is_active", true),
+  ]);
+
+  if (error) throw new Error(`Gagal memuat kategori: ${error.message}`);
+  if (productError) throw new Error(`Gagal menghitung produk per kategori: ${productError.message}`);
+
+  const counts = new Map<string, number>();
+  for (const product of productRows ?? []) {
+    if (product.category_slug) counts.set(product.category_slug, (counts.get(product.category_slug) ?? 0) + 1);
+  }
+
+  return (data ?? []).map((item: any) => ({
+    ...item,
+    imageUrl: item.image_url ?? "",
+    itemCount: counts.get(item.slug) ?? 0,
+  }));
+}
+
+function mapProduct(row: any): Product {
+  return {
+    // Keep the full database row, including nullable values and timestamps.
+    ...row,
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    price: Number(row.price),
+    original_price: row.original_price === null ? null : Number(row.original_price),
+    discount_percentage: row.discount_percentage,
+    rating: row.rating === null ? null : Number(row.rating),
+    review_count: row.review_count,
+    category_slug: row.category_slug,
+    thumbnail: row.thumbnail,
+    images: row.images,
+    sizes: row.sizes,
+    colors: row.colors,
+    stock: row.stock,
+    sku: row.sku,
+    is_featured: Boolean(row.is_featured),
+    is_new: Boolean(row.is_new),
+    is_active: Boolean(row.is_active),
+    weight_grams: row.weight_grams,
+    material: row.material,
+    care_instructions: row.care_instructions,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+
+    // UI aliases do not invent values; nullable source fields remain nullable.
+    originalPrice: row.original_price === null ? null : Number(row.original_price),
+    discountPercentage: row.discount_percentage,
+    reviewCount: row.review_count,
+    categorySlug: row.category_slug,
+    isFeatured: Boolean(row.is_featured),
+    isNew: Boolean(row.is_new),
+    weightGrams: row.weight_grams,
+    careInstructions: row.care_instructions,
+  } as Product;
 }
 
 export async function fetchProducts(filters: ProductFilters = {}): Promise<Product[]> {
-  let productsList = getCustomProducts();
-
-  if (isSupabaseConfigured && supabase) {
-    try {
-      let query = supabase.from("products").select("*").eq("is_active", true);
-
-      if (filters.categorySlug && filters.categorySlug !== "all") {
-        query = query.eq("category_slug", filters.categorySlug);
-      }
-
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        productsList = data.map((p: any) => ({
-          id: p.id,
-          slug: p.slug,
-          title: p.title,
-          description: p.description || "",
-          price: Number(p.price),
-          originalPrice: p.original_price ? Number(p.original_price) : undefined,
-          discountPercentage: p.discount_percentage || 0,
-          rating: Number(p.rating) || 4.9,
-          reviewCount: p.review_count || 10,
-          categorySlug: p.category_slug || "dresses",
-          thumbnail: p.thumbnail,
-          images: p.images && p.images.length > 0 ? p.images : [p.thumbnail],
-          sizes: p.sizes || ["S", "M", "L", "XL"],
-          colors: p.colors || ["Mocca", "Broken White", "Sage", "Hitam"],
-          stock: p.stock ?? 25,
-          sku: p.sku || `ASR-${p.id.slice(0, 6)}`,
-          isFeatured: Boolean(p.is_featured),
-          isNew: Boolean(p.is_new),
-          weightGrams: p.weight_grams || 350,
-          material: p.material || "Premium Silk & Cotton Blend",
-          careInstructions: p.care_instructions || "Cuci dengan tangan, gunakan detergen lembut.",
-        }));
-      }
-    } catch (err) {
-      console.warn("Supabase products fetch error, using local fallback:", err);
-    }
-  }
-
-  // Filter & Sort secara client-side untuk responsivitas instan
-  let filtered = [...productsList];
+  const client = requireSupabase();
+  let query = client.from("products").select("*").eq("is_active", true);
 
   if (filters.categorySlug && filters.categorySlug !== "all") {
-    filtered = filtered.filter((p) => p.categorySlug === filters.categorySlug);
+    query = query.eq("category_slug", filters.categorySlug);
   }
 
-  if (filters.search && filters.search.trim()) {
+  const { data, error } = await query;
+  if (error) throw new Error(`Gagal memuat produk: ${error.message}`);
+
+  let filtered = (data ?? []).map(mapProduct);
+
+  if (filters.search?.trim()) {
     const q = filters.search.toLowerCase().trim();
-    filtered = filtered.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.material.toLowerCase().includes(q) ||
-        p.categorySlug.toLowerCase().includes(q)
+    filtered = filtered.filter((p) =>
+      p.title.toLowerCase().includes(q) ||
+      (p.description ?? "").toLowerCase().includes(q) ||
+      (p.material ?? "").toLowerCase().includes(q) ||
+      (p.category_slug ?? "").toLowerCase().includes(q)
     );
   }
-
   if (filters.minPrice !== undefined && filters.minPrice > 0) {
     filtered = filtered.filter((p) => p.price >= filters.minPrice!);
   }
-
   if (filters.maxPrice !== undefined && filters.maxPrice > 0) {
     filtered = filtered.filter((p) => p.price <= filters.maxPrice!);
   }
-
-  if (filters.inStockOnly) {
-    filtered = filtered.filter((p) => p.stock > 0);
-  }
+  if (filters.inStockOnly) filtered = filtered.filter((p) => (p.stock ?? 0) > 0);
 
   switch (filters.sortBy) {
-    case "price-asc":
-      filtered.sort((a, b) => a.price - b.price);
-      break;
-    case "price-desc":
-      filtered.sort((a, b) => b.price - a.price);
-      break;
-    case "newest":
-      filtered.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
-      break;
-    case "rating":
-      filtered.sort((a, b) => b.rating - a.rating);
-      break;
+    case "price-asc": filtered.sort((a, b) => a.price - b.price); break;
+    case "price-desc": filtered.sort((a, b) => b.price - a.price); break;
+    case "newest": filtered.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)); break;
+    case "rating": filtered.sort((a, b) => (b.rating ?? -Infinity) - (a.rating ?? -Infinity)); break;
     case "featured":
-    default:
-      filtered.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
-      break;
+    default: filtered.sort((a, b) => Number(b.is_featured) - Number(a.is_featured)); break;
   }
-
   return filtered;
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  const all = await fetchProducts();
-  const found = all.find((p) => p.slug === slug || p.id === slug);
-  return found || null;
+  const client = requireSupabase();
+  const { data, error } = await client.from("products").select("*")
+    .eq("is_active", true)
+    .or(`slug.eq.${slug},id.eq.${slug}`)
+    .maybeSingle();
+  if (error) throw new Error(`Gagal memuat detail produk: ${error.message}`);
+  return data ? mapProduct(data) : null;
 }
 
 export interface CheckoutPayload {
