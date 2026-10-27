@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchProducts, ProductFilters } from "../services/productApi.ts";
-import { Product, OFFICIAL_PRODUCTS } from "../data/defaultCatalog.ts";
+import { Product } from "../data/defaultCatalog.ts";
 import { ProductCard } from "../components/product/ProductCard.tsx";
 import { ProductFilter } from "../components/product/ProductFilter.tsx";
 import { ProductCardSkeleton } from "../components/ui/Loader.tsx";
@@ -9,8 +9,9 @@ import { Sparkles, SearchX } from "lucide-react";
 
 export const Products: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>(OFFICIAL_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Sync state from URL parameters
   const currentCategory = searchParams.get("category") || "all";
@@ -30,6 +31,7 @@ export const Products: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
+    setLoadError(false);
 
     fetchProducts(filters)
       .then((res) => {
@@ -39,6 +41,10 @@ export const Products: React.FC = () => {
       })
       .catch((err) => {
         console.warn("Failed to load products:", err);
+        if (isMounted) {
+          setProducts([]);
+          setLoadError(true);
+        }
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -99,6 +105,14 @@ export const Products: React.FC = () => {
             {Array.from({ length: 8 }).map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
+          </div>
+        ) : loadError ? (
+          <div role="alert" className="bg-white border border-[#E7DFD5] p-12 text-center">
+            <h3 className="font-serif text-lg font-bold text-[#1C1917]">Produk gagal dimuat</h3>
+            <p className="text-xs text-stone-500 mt-1">Periksa koneksi Anda, lalu muat ulang halaman.</p>
+            <button onClick={() => window.location.reload()} className="mt-5 px-5 py-2 text-xs font-semibold text-white bg-[#1C1917]">
+              Coba Lagi
+            </button>
           </div>
         ) : products.length === 0 ? (
           <div className="bg-white border border-[#E7DFD5] p-12 text-center flex flex-col items-center justify-center">
