@@ -192,9 +192,7 @@ export const ProductDetails: React.FC = () => {
           <div className="lg:col-span-5 bg-white border border-[#E7DFD5] p-6 sm:p-8 space-y-6 shadow-xs">
             <div>
               {/* SKU */}
-              <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
-                <span className="uppercase tracking-wider font-semibold text-[#9A3412]">
-                </span>
+              <div className="flex items-center justify-end text-xs text-stone-500 mb-1">
                 <span className="font-mono text-[11px]">SKU: {product.sku}</span>
               </div>
 
