@@ -1,5 +1,5 @@
 import React from "react";
-import { SlidersHorizontal, RotateCcw } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { ProductFilters } from "../../services/productApi.ts";
 
 interface ProductFilterProps {
@@ -24,22 +24,6 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
   const isPriceActive = (min?: number, max?: number) => {
     return filters.minPrice === min && filters.maxPrice === max;
   };
-
-  const handleReset = () => {
-    onChange({
-      search: "",
-      minPrice: undefined,
-      maxPrice: undefined,
-      sortBy: "featured",
-      inStockOnly: false,
-    });
-  };
-
-  const hasActiveFilters =
-    filters.minPrice !== undefined ||
-    filters.maxPrice !== undefined ||
-    (filters.search && filters.search.length > 0) ||
-    filters.inStockOnly;
 
   return (
     <div className="bg-white border border-[#E7DFD5] p-5 mb-8 space-y-5">
