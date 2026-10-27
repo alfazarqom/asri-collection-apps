@@ -1,26 +1,24 @@
 import React from "react";
 import { SlidersHorizontal, RotateCcw } from "lucide-react";
 import { ProductFilters } from "../../services/productApi.ts";
+import { Category } from "../../data/defaultCatalog.ts";
 
 interface ProductFilterProps {
   filters: ProductFilters;
   onChange: (updated: ProductFilters) => void;
   totalResults: number;
+  categories: Category[];
 }
 
 export const ProductFilter: React.FC<ProductFilterProps> = ({
   filters,
   onChange,
   totalResults,
+  categories: availableCategories,
 }) => {
   const categories = [
     { label: "Semua", value: "all" },
-    { label: "Gamis & Dress", value: "dresses" },
-    { label: "Tunik & Blouse", value: "tops" },
-    { label: "Tas Kulit Vegan", value: "bags" },
-    { label: "Hijab & Pashmina", value: "hijab" },
-    { label: "Kitten Heels", value: "heels" },
-    { label: "Parfum Butik", value: "fragrance" },
+    ...availableCategories.map((category) => ({ label: category.name, value: category.slug })),
   ];
 
   const priceRanges = [
