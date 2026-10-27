@@ -85,8 +85,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     size?: string,
     color?: string
   ) => {
-    const chosenSize = size || product.sizes[0] || "All Size";
-    const chosenColor = color || product.colors[0] || "Default";
+    if (product.stock === null || product.stock <= 0) {
+      showToast("Stok produk belum tersedia atau habis.", "info");
+      return;
+    }
+    const chosenSize = size || product.sizes?.[0] || "";
+    const chosenColor = color || product.colors?.[0] || "";
     const itemId = `${product.id}-${chosenSize}-${chosenColor}`;
 
     setCart((prev) => {
@@ -96,7 +100,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const newQty = updated[existingIndex].quantity + quantity;
         updated[existingIndex] = {
           ...updated[existingIndex],
-          quantity: Math.min(newQty, product.stock),
+          quantity: Math.min(newQty, product.stock ?? 0),
         };
         return updated;
       } else {
@@ -105,7 +109,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           {
             id: itemId,
             product,
-            quantity: Math.min(quantity, product.stock),
+            quantity: Math.min(quantity, product.stock ?? 0),
             selectedSize: chosenSize,
             selectedColor: chosenColor,
           },
@@ -130,7 +134,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCart((prev) =>
       prev.map((item) => {
         if (item.id === itemId) {
-          const maxStock = item.product.stock || 99;
+          const maxStock = item.product.stock ?? 0;
           return { ...item, quantity: Math.min(newQuantity, maxStock) };
         }
         return item;
