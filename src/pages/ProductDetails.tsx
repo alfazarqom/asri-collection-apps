@@ -196,10 +196,8 @@ export const ProductDetails: React.FC = () => {
           {/* Sticky Purchase Module Right */}
           <div className="lg:col-span-5 bg-white border border-[#E7DFD5] p-6 sm:p-8 space-y-6 shadow-xs">
             <div>
-              {/* Category & SKU */}
+              {/* SKU */}
               <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
-                <span className="uppercase tracking-wider font-semibold text-[#9A3412]">
-                      </span>
                 <span className="font-mono text-[11px]">SKU: {product.sku}</span>
               </div>
 
