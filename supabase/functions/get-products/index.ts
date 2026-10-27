@@ -7,8 +7,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Content-Type": "application/json; charset=utf-8",
-  "Cache-Control": "public, max-age=60, s-maxage=60",
 };
+
+const SUCCESS_CACHE_CONTROL = "public, max-age=60, s-maxage=60";
+const ERROR_CACHE_CONTROL = "no-store";
 
 // Explicit allowlist from the audited public.products schema.
 // Do not use select("*") on a public endpoint.
@@ -37,7 +39,12 @@ const PRODUCT_COLUMNS = [
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: corsHeaders,
+    headers: {
+      ...corsHeaders,
+      "Cache-Control": status >= 200 && status < 300
+        ? SUCCESS_CACHE_CONTROL
+        : ERROR_CACHE_CONTROL,
+    },
   });
 }
 
@@ -45,7 +52,10 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
       status: 200,
-      headers: corsHeaders,
+      headers: {
+        ...corsHeaders,
+        "Cache-Control": ERROR_CACHE_CONTROL,
+      },
     });
   }
 
@@ -71,7 +81,7 @@ Deno.serve(async (req: Request) => {
   const rawLimit = url.searchParams.get("limit") ?? "100";
   const rawOffset = url.searchParams.get("offset") ?? "0";
 
-  if (!/^\d+$/.test(rawLimit) || !/^\d+$/.test(rawOffset)) {
+  if (!/^\\d+$/.test(rawLimit) || !/^\\d+$/.test(rawOffset)) {
     return jsonResponse(
       { error: "limit and offset must be non-negative integers." },
       400,
@@ -118,9 +128,12 @@ Deno.serve(async (req: Request) => {
       },
     });
 
+    // "planned" uses the query planner's estimate instead of an exact
+    // row count on every catalog request. The total is explicitly marked
+    // as an estimate in the response contract.
     const { data, error, count } = await supabase
       .from("products")
-      .select(PRODUCT_COLUMNS, { count: "exact" })
+      .select(PRODUCT_COLUMNS, { count: "planned" })
       .order("id", { ascending: true })
       .range(requestedOffset, endOffset);
 
@@ -140,7 +153,8 @@ Deno.serve(async (req: Request) => {
       pagination: {
         limit: requestedLimit,
         offset: requestedOffset,
-        total: count ?? products.length,
+        total: count ?? null,
+        totalIsEstimate: true,
         returned: products.length,
       },
     });
