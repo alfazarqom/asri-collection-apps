@@ -91,4 +91,4 @@ export const OFFICIAL_CATEGORIES: Category[] = [
   },
 ];
 
-export const OFFICIAL_PRODUCTS: Product[] = [];;
+export const OFFICIAL_PRODUCTS: Product[] = [];
