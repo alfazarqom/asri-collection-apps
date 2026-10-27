@@ -480,7 +480,7 @@ export const ProductDetails: React.FC = () => {
         {/* Related Products */}
         <RelatedProducts
           currentProductId={product.id}
-          categorySlug={product.categorySlug}
+          categorySlug={product.categorySlug ?? ""}
           allProducts={allProducts}
         />
       </div>
