@@ -1331,7 +1331,7 @@ export const Admin: React.FC = () => {
                                 : "bg-rose-50 text-rose-800 border-rose-300"
                             }`}
                           >
-                            {p.stock > 0 ? `Stok: ${p.stock}` : "Stok: Habis"}
+                            {(p.stock ?? 0) > 0 ? `Stok: ${p.stock}` : "Stok: Habis"}
                           </button>
 
                           <button
@@ -1400,7 +1400,7 @@ export const Admin: React.FC = () => {
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
                             <img
-                              src={p.thumbnail}
+                              src={p.thumbnail ?? ""}
                               alt={p.title}
                               referrerPolicy="no-referrer"
                               className="w-12 h-14 object-cover border border-[#E7DFD5] bg-[#FAF8F5] shrink-0"
@@ -1434,13 +1434,13 @@ export const Admin: React.FC = () => {
                           <button
                             onClick={() => handleToggleProductStock(p)}
                             className={`px-2 py-0.5 text-[10px] font-bold border ${
-                              p.stock > 0
+                              (p.stock ?? 0) > 0
                                 ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                                 : "bg-rose-50 text-rose-800 border-rose-300"
                             }`}
                             title="Klik untuk ubah stok (Tersedia / Habis)"
                           >
-                            {p.stock > 0 ? `Tersedia (${p.stock})` : "Habis (0)"}
+                            {(p.stock ?? 0) > 0 ? `Tersedia (${p.stock})` : "Habis (0)"}
                           </button>
                         </td>
 
