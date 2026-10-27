@@ -14,20 +14,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 1. TABEL KATEGORI
-CREATE TABLE IF NOT EXISTS public.categories (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    slug TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    image_url TEXT,
-    display_order INT DEFAULT 0,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- 2. TABEL PRODUK
+-- 1. TABEL PRODUK
 CREATE TABLE IF NOT EXISTS public.products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     slug TEXT UNIQUE NOT NULL,
@@ -38,7 +25,6 @@ CREATE TABLE IF NOT EXISTS public.products (
     discount_percentage INT DEFAULT 0,
     rating NUMERIC(3, 2) DEFAULT 4.9,
     review_count INT DEFAULT 0,
-    category_slug TEXT REFERENCES public.categories(slug) ON UPDATE CASCADE ON DELETE SET NULL,
     thumbnail TEXT NOT NULL,
     images TEXT[] NOT NULL DEFAULT '{}',
     sizes TEXT[] DEFAULT '{"S", "M", "L", "XL", "All Size"}'::text[],
@@ -116,7 +102,6 @@ CREATE TABLE IF NOT EXISTS public.banners (
 CREATE INDEX IF NOT EXISTS idx_orders_merchant_order_id ON public.orders(merchant_order_id);
 CREATE INDEX IF NOT EXISTS idx_orders_reference ON public.orders(reference);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(status);
-CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category_slug);
 
 -- Triggers
 DROP TRIGGER IF EXISTS trigger_products_updated_at ON public.products;
@@ -126,13 +111,11 @@ DROP TRIGGER IF EXISTS trigger_orders_updated_at ON public.orders;
 CREATE TRIGGER trigger_orders_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 -- Kebijakan Row Level Security (RLS)
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public read active categories" ON public.categories FOR SELECT USING (is_active = true);
 CREATE POLICY "Public read active products" ON public.products FOR SELECT USING (is_active = true);
 CREATE POLICY "Public read active banners" ON public.banners FOR SELECT USING (is_active = true);
 CREATE POLICY "Public create orders" ON public.orders FOR INSERT WITH CHECK (true);
