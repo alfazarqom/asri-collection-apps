@@ -4,7 +4,7 @@ import { ProductCard } from "./ProductCard.tsx";
 
 interface RelatedProductsProps {
   currentProductId: string;
-  categorySlug: string;
+  categorySlug: string | null;
   allProducts: Product[];
 }
 
