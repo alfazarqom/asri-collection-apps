@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Share2,
 } from "lucide-react";
-import { fetchProductBySlug, fetchProducts } from "../services/productApi.ts";
+import { fetchProducts } from "../services/productApi.ts";
 import { Product } from "../data/defaultCatalog.ts";
 import { formatRupiah } from "../utils/formatters.ts";
 import { useCart } from "../hooks/useCart.ts";
@@ -43,10 +43,8 @@ export const ProductDetails: React.FC = () => {
     async function loadProduct() {
       setLoading(true);
       try {
-        const [foundProduct, products] = await Promise.all([
-          fetchProductBySlug(id || ""),
-          fetchProducts(),
-        ]);
+        const products = await fetchProducts();
+        const foundProduct = products.find((item) => item.slug === id || item.id === id) || null;
 
         if (!isMounted) return;
         setProduct(foundProduct);
