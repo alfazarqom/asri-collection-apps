@@ -108,7 +108,7 @@ export async function fetchCategories(): Promise<Category[]> {
   return getCustomCategories();
 }
 
-const PRODUCTS_ENDPOINT = `${(import.meta.env.VITE_SUPABASE_URL || "https://mvwflakurihhakdrlteg.supabase.co").replace(/\\/+$/, "")}/functions/v1/get-bonsoir-products`;
+const PRODUCTS_ENDPOINT = `${(import.meta.env.VITE_SUPABASE_URL || "https://mvwflakurihhakdrlteg.supabase.co").replace(/\/+$/, "")}/functions/v1/get-bonsoir-products`;
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -129,7 +129,7 @@ function slugify(value: string): string {
   return value
     .normalize("NFKD")
     .toLowerCase()
-    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 }
