@@ -226,7 +226,7 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
       filtered.sort((a, b) => b.price - a.price);
       break;
     case "newest":
-      filtered.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+      filtered.sort((a, b) => Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""));
       break;
     case "rating":
       filtered.sort((a, b) => b.rating - a.rating);
