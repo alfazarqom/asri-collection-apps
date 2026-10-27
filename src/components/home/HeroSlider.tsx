@@ -31,7 +31,7 @@ export const HeroSlider: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
-                to="/products?category=dresses"
+                to="/products"
                 className="py-3.5 px-6 text-xs font-semibold uppercase tracking-wider text-[#1C1917] bg-white border border-[#E7DFD5] hover:bg-[#F4EFEA] transition-colors"
               >
                 Gamis & Abaya
