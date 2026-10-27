@@ -108,76 +108,115 @@ export async function fetchCategories(): Promise<Category[]> {
   return getCustomCategories();
 }
 
+const PRODUCTS_ENDPOINT = `${(import.meta.env.VITE_SUPABASE_URL || "https://mvwflakurihhakdrlteg.supabase.co").replace(/\\/+$/, "")}/functions/v1/get-bonsoir-products`;
+
+function asString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean)
+    : [];
+}
+
+function asPrice(value: unknown): number | null {
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function slugify(value: string): string {
+  return value
+    .normalize("NFKD")
+    .toLowerCase()
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function mapProductRow(row: Record<string, unknown>): Product {
+  const id = asString(row.id);
+  const title = asString(row.title) || "Produk tanpa judul";
+  const basePrice = asPrice(row.price) ?? 0;
+  const salePrice = asPrice(row.sale_price);
+  const hasValidSale = salePrice !== null && salePrice > 0 && basePrice > 0 && salePrice < basePrice;
+  const labels = asStringArray(row.labels);
+  const categorySlug = slugify(asString(row.category)) || "uncategorized";
+  const primaryImage = asString(row.image_url);
+  const images = [...new Set([primaryImage, ...asStringArray(row.additional_image_urls)].filter(Boolean))];
+  const availability = asString(row.availability).toLowerCase();
+  const soldOutLabel = labels.some((label) => ["sold out", "out of stock"].includes(label.toLowerCase()));
+  const rawStock = typeof row.stock_quantity === "number" ? row.stock_quantity : Number(row.stock_quantity);
+  const stock = availability === "out of stock" || soldOutLabel
+    ? 0
+    : Number.isFinite(rawStock) && rawStock >= 0 ? rawStock : 0;
+
+  return {
+    id,
+    slug: `${slugify(title) || "product"}-${id.slice(0, 8)}`,
+    title,
+    description: asString(row.description),
+    price: hasValidSale ? salePrice! : basePrice,
+    originalPrice: hasValidSale ? basePrice : undefined,
+    discountPercentage: hasValidSale ? Math.round(((basePrice - salePrice!) / basePrice) * 100) : 0,
+    rating: 0,
+    reviewCount: 0,
+    categorySlug,
+    thumbnail: primaryImage || images[0] || "",
+    images,
+    sizes: asStringArray(row.sizes),
+    colors: asStringArray(row.colors),
+    stock,
+    sku: asString(row.sku),
+    isFeatured: labels.some((label) => ["featured", "best seller", "bestseller"].includes(label.toLowerCase())),
+    isNew: labels.some((label) => ["new in", "new arrival", "new"].includes(label.toLowerCase())),
+    weightGrams: 0,
+    material: "",
+    careInstructions: "",
+  };
+}
+
 export async function fetchProducts(filters: ProductFilters = {}): Promise<Product[]> {
-  let productsList = getCustomProducts();
+  const response = await fetch(PRODUCTS_ENDPOINT, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
 
-  if (isSupabaseConfigured && supabase) {
-    try {
-      let query = supabase.from("products").select("*").eq("is_active", true);
-
-      if (filters.categorySlug && filters.categorySlug !== "all") {
-        query = query.eq("category_slug", filters.categorySlug);
-      }
-
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        productsList = data.map((p: any) => ({
-          id: p.id,
-          slug: p.slug,
-          title: p.title,
-          description: p.description || "",
-          price: Number(p.price),
-          originalPrice: p.original_price ? Number(p.original_price) : undefined,
-          discountPercentage: p.discount_percentage || 0,
-          rating: Number(p.rating) || 4.9,
-          reviewCount: p.review_count || 10,
-          categorySlug: p.category_slug || "dresses",
-          thumbnail: p.thumbnail,
-          images: p.images && p.images.length > 0 ? p.images : [p.thumbnail],
-          sizes: p.sizes || ["S", "M", "L", "XL"],
-          colors: p.colors || ["Mocca", "Broken White", "Sage", "Hitam"],
-          stock: p.stock ?? 25,
-          sku: p.sku || `ASR-${p.id.slice(0, 6)}`,
-          isFeatured: Boolean(p.is_featured),
-          isNew: Boolean(p.is_new),
-          weightGrams: p.weight_grams || 350,
-          material: p.material || "Premium Silk & Cotton Blend",
-          careInstructions: p.care_instructions || "Cuci dengan tangan, gunakan detergen lembut.",
-        }));
-      }
-    } catch (err) {
-      console.warn("Supabase products fetch error, using local fallback:", err);
-    }
+  if (!response.ok) {
+    throw new Error(`Gagal mengambil produk (HTTP ${response.status}).`);
   }
 
-  // Filter & Sort secara client-side untuk responsivitas instan
-  let filtered = [...productsList];
+  const payload: unknown = await response.json();
+  if (!Array.isArray(payload)) {
+    throw new Error("Kontrak get-bonsoir-products tidak valid: respons harus berupa array produk.");
+  }
+
+  let filtered = (payload as Record<string, unknown>[])
+    .filter((row) => row && typeof row === "object" && typeof row.id === "string")
+    .map(mapProductRow);
 
   if (filters.categorySlug && filters.categorySlug !== "all") {
-    filtered = filtered.filter((p) => p.categorySlug === filters.categorySlug);
+    filtered = filtered.filter((product) => product.categorySlug === filters.categorySlug);
   }
 
-  if (filters.search && filters.search.trim()) {
-    const q = filters.search.toLowerCase().trim();
-    filtered = filtered.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.material.toLowerCase().includes(q) ||
-        p.categorySlug.toLowerCase().includes(q)
+  if (filters.search?.trim()) {
+    const query = filters.search.toLowerCase().trim();
+    filtered = filtered.filter((product) =>
+      product.title.toLowerCase().includes(query) ||
+      product.description.toLowerCase().includes(query) ||
+      product.material.toLowerCase().includes(query) ||
+      product.categorySlug.toLowerCase().includes(query)
     );
   }
 
   if (filters.minPrice !== undefined && filters.minPrice > 0) {
-    filtered = filtered.filter((p) => p.price >= filters.minPrice!);
+    filtered = filtered.filter((product) => product.price >= filters.minPrice!);
   }
-
   if (filters.maxPrice !== undefined && filters.maxPrice > 0) {
-    filtered = filtered.filter((p) => p.price <= filters.maxPrice!);
+    filtered = filtered.filter((product) => product.price <= filters.maxPrice!);
   }
-
   if (filters.inStockOnly) {
-    filtered = filtered.filter((p) => p.stock > 0);
+    filtered = filtered.filter((product) => product.stock > 0);
   }
 
   switch (filters.sortBy) {
