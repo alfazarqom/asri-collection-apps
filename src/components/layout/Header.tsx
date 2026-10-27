@@ -37,7 +37,7 @@ export const Header: React.FC = () => {
             Asri Collection
           </Link>
 
-          {/* Zone 2: 4-5 single-line clean nav links */}
+          {/* Zone 2: Main navigation links */}
           <nav className="hidden md:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider text-stone-700">
             <Link
               to="/"
@@ -46,22 +46,6 @@ export const Header: React.FC = () => {
               }`}
             >
               Beranda
-            </Link>
-            <Link
-              to="/products?category=dresses"
-              className={`hover:text-[#9A3412] transition-colors whitespace-nowrap shrink-0 py-1 ${
-                location.search.includes("dresses") ? "text-[#9A3412] border-b-2 border-[#9A3412]" : ""
-              }`}
-            >
-              Gamis & Dress
-            </Link>
-            <Link
-              to="/products?category=tops"
-              className={`hover:text-[#9A3412] transition-colors whitespace-nowrap shrink-0 py-1 ${
-                location.search.includes("tops") ? "text-[#9A3412] border-b-2 border-[#9A3412]" : ""
-              }`}
-            >
-              Tunik & Atasan
             </Link>
             <Link
               to="/products"
