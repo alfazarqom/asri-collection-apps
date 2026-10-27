@@ -140,11 +140,6 @@ export const ProductDetails: React.FC = () => {
             Katalog
           </Link>
           <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-          <Link
-            className="hover:text-[#9A3412] capitalize"
-          >
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
           <span className="text-[#1C1917] font-semibold truncate max-w-xs">
             {product.title}
           </span>
