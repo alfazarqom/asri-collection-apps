@@ -13,7 +13,7 @@ import {
   Share2,
 } from "lucide-react";
 import { fetchProductBySlug, fetchProducts } from "../services/productApi.ts";
-import { Product, OFFICIAL_PRODUCTS } from "../data/defaultCatalog.ts";
+import { Product } from "../data/defaultCatalog.ts";
 import { formatRupiah } from "../utils/formatters.ts";
 import { useCart } from "../hooks/useCart.ts";
 import { SizeGuideModal } from "../components/ui/SizeGuideModal.tsx";
@@ -26,7 +26,7 @@ export const ProductDetails: React.FC = () => {
   const { addToCart, showToast } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [allProducts, setAllProducts] = useState<Product[]>(OFFICIAL_PRODUCTS);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Selected purchase state
@@ -46,20 +46,23 @@ export const ProductDetails: React.FC = () => {
         if (isMounted) {
           if (p) {
             setProduct(p);
-            setSelectedImage(p.thumbnail);
-            setSelectedSize(p.sizes[0] || "All Size");
-            setSelectedColor(p.colors[0] || "Default");
+            setSelectedImage(p.thumbnail ?? "");
+            setSelectedSize(p.sizes?.[0] ?? "");
+            setSelectedColor(p.colors?.[0] ?? "");
             setQuantity(1);
           } else {
             setProduct(null);
           }
           setLoading(false);
         }
+      }).catch((err) => {
+        console.error("Failed to load product detail:", err);
+        if (isMounted) { setProduct(null); setLoading(false); }
       });
 
       fetchProducts().then((list) => {
         if (isMounted) setAllProducts(list);
-      });
+      }).catch((err) => console.error("Failed to load related products:", err));
     }
 
     return () => {
@@ -141,7 +144,7 @@ export const ProductDetails: React.FC = () => {
           </Link>
           <ChevronRight className="w-3.5 h-3.5 shrink-0" />
           <Link
-            to={`/products?category=${product.categorySlug}`}
+            to={product.categorySlug ? `/products?category=${product.categorySlug}` : "/products"}
             className="hover:text-[#9A3412] capitalize"
           >
             {product.categorySlug}
@@ -158,7 +161,7 @@ export const ProductDetails: React.FC = () => {
           <div className="lg:col-span-7 space-y-4">
             <div className="aspect-[4/3] bg-white border border-[#E7DFD5] overflow-hidden relative shadow-sm">
               <img
-                src={selectedImage || product.thumbnail}
+                src={selectedImage || product.thumbnail || ""}
                 alt={product.title}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
@@ -328,7 +331,7 @@ export const ProductDetails: React.FC = () => {
                   {quantity}
                 </span>
                 <button
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  onClick={() => setQuantity(Math.min(product.stock ?? 0, quantity + 1))}
                   className="px-3 py-2 hover:bg-[#F4EFEA] text-stone-700 transition-colors"
                   aria-label="Tambah jumlah"
                 >
