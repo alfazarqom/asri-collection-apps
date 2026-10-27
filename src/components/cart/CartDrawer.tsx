@@ -123,7 +123,7 @@ export const CartDrawer: React.FC = () => {
               cart.map((item) => (
                 <div key={item.id} className="py-4 first:pt-0 last:pb-0 flex gap-4">
                   <img
-                    src={item.product.thumbnail}
+                    src={item.product.thumbnail ?? ""}
                     alt={item.product.title}
                     referrerPolicy="no-referrer"
                     className="w-20 h-24 object-cover border border-[#E7DFD5] bg-[#FAF8F5] shrink-0"
