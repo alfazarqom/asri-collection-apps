@@ -178,12 +178,16 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   const client = requireSupabase();
-  const { data, error } = await client.from("products").select("*")
-    .eq("is_active", true)
-    .or(`slug.eq.${slug},id.eq.${slug}`)
-    .maybeSingle();
-  if (error) throw new Error(`Gagal memuat detail produk: ${error.message}`);
-  return data ? mapProduct(data) : null;
+  const bySlug = await client.from("products").select("*")
+    .eq("is_active", true).eq("slug", slug).maybeSingle();
+  if (bySlug.error) throw new Error(`Gagal memuat detail produk: ${bySlug.error.message}`);
+  if (bySlug.data) return mapProduct(bySlug.data);
+
+  // Some internal links may use the row ID instead of its slug.
+  const byId = await client.from("products").select("*")
+    .eq("is_active", true).eq("id", slug).maybeSingle();
+  if (byId.error) throw new Error(`Gagal memuat detail produk: ${byId.error.message}`);
+  return byId.data ? mapProduct(byId.data) : null;
 }
 
 export interface CheckoutPayload {
